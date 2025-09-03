@@ -28,21 +28,21 @@ import { createTodoSchema, updateTodoSchema, todoParamsSchema, userParamsSchema 
 const router = Router();
 
 // GET /api/todos - Alle Todos abrufen
-router.get('/', TodoController.getAllTodos);
+router.get('/api/todos', TodoController.getAllTodos);
 
 // POST /api/todos - Neues Todo erstellen
-router.post('/', validate(createTodoSchema), TodoController.createTodo);
+router.post('/api/todos', validate(createTodoSchema), TodoController.createTodo);
 
 // GET /api/todos/:id - Spezifisches Todo abrufen
-router.get('/:id', validate(todoParamsSchema), TodoController.getTodoById);
+router.get('/api/todos:id', validate(todoParamsSchema), TodoController.getTodoById);
 
 // PUT /api/todos/:id - Todo aktualisieren
-router.put('/:id', validate(todoParamsSchema.merge(updateTodoSchema)), TodoController.updateTodo);
+router.put('/api/todos/:id', validate(todoParamsSchema.merge(updateTodoSchema)), TodoController.updateTodo);
 
 // DELETE /api/todos/:id - Todo löschen
-router.delete('/:id', validate(todoParamsSchema), TodoController.deleteTodo);
+router.delete('/api/todos/:id', validate(todoParamsSchema), TodoController.deleteTodo);
 
 // GET /api/todos/user/:userId - Alle Todos eines Users abrufen
-router.get('/user/:userId', validate(userParamsSchema), TodoController.getTodosByUser);
+router.get('/api/todus/user/:userId', validate(userParamsSchema), TodoController.getTodosByUser);
 
 export default router;

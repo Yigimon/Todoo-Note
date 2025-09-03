@@ -1,6 +1,26 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+/*
+ *  PRISMA TYPE DEFINITIONS
+ * 
+ * @id = Primary Key (eindeutiger Identifier)
+ * @default(cuid()) = Automatisch generierte eindeutige ID
+ * @unique = Eindeutiger Wert (kein Duplikat erlaubt)
+ * @default(now()) = Automatisch aktuelles Datum/Zeit setzen
+ * @updatedAt = Automatisch bei jeder Änderung aktualisieren
+ * @relation = Verbindung zwischen Tabellen (Foreign Key)
+ * onDelete: Cascade = Beim Löschen des Users auch alle Todos löschen
+ * @map("tablename") = Echter Tabellenname in der Datenbank
+ * 
+ * String = Text
+ * String? = Optional (kann null sein)
+ * String[] = Array von Texten
+ * DateTime = Datum + Zeit
+ * DateTime? = Optional Datum
+ * Status = Eigenes Enum (OPEN oder COMPLETED)
+ */
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -16,7 +36,7 @@ model User {
   password  String
   name      String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt 
 
   todos Todo[]
 

@@ -4,28 +4,22 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-
+import todoRoutes from './routes/todos';
 /*
- * TODO: NÄCHSTE SCHRITTE FÜR DEN SERVER
+ * ✅ AKTUELLER SERVER-STATUS:
  * 
- * 1. ❌ WICHTIGSTER SCHRITT: API-Routes einbinden!
- *    -> import todoRoutes from './routes/todos';
- *    -> app.use('/api/todos', todoRoutes);
- * 
- * 2. ❌ Database Migration ausführen:
+ * 1. ✅ API-Routes sind verbunden! (Zeile 33)
+ * 2. ❌ Database Migration muss ausgeführt werden:
  *    -> pnpm prisma:migrate
  * 
- * 3. ❌ Testen ob API funktioniert:
- *    -> GET http://localhost:3000/api/todos
- * 
+ * 3. ❌ Controller müssen vervollständigt werden
  * 4. ❌ Später: Authentifizierung hinzufügen
- *    -> Session & Passport wieder einbauen
  */
 
 // Setup
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;  // ✅ Zurück auf Port 3000
 export const prisma = new PrismaClient();
 
 // Basic Middleware
@@ -33,6 +27,7 @@ app.use(helmet());
 app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json());
+app.use("/api/todos", todoRoutes);
 
 // Routes
 app.get('/', (req, res) => {
@@ -42,24 +37,12 @@ app.get('/', (req, res) => {
   });
 });
 
-// TODO: HIER FEHLEN DIE API-ROUTES!
-// NÄCHSTER SCHRITT: Diese Zeilen hinzufügen:
-// import todoRoutes from './routes/todos';
-// app.use('/api/todos', todoRoutes);
-// 
-// Dann funktionieren diese Endpunkte:
-// GET    /api/todos     -> Alle Todos
-// POST   /api/todos     -> Neues Todo
-// GET    /api/todos/:id -> Ein Todo
-// PUT    /api/todos/:id -> Todo updaten  
-// DELETE /api/todos/:id -> Todo löschen
-
 app.get('/health', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    res.json({ status: 'healthy', database: 'connected' });
+    res.json({ status: 'Server is Online', database: 'connected' });
   } catch (error) {
-    res.status(500).json({ status: 'unhealthy', database: 'disconnected' });
+    res.status(500).json({ status: 'Server is not online', database: 'disconnected' });
   }
 });
 
