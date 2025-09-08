@@ -16,8 +16,9 @@ src/
 ├── routes/              # API-Routen
 ├── middleware/          # Custom Middleware
 ├── schemas/             # Zod-Validierungsschemas
-└── index.ts             # Haupt-Server-Datei
-
+├── index.ts             # Haupt-Server-Datei
+├── types                # Typenvalidierung für Response
+└── utils                # Auslagerung in Klassen 
 prisma/
 └── schema.prisma        # Datenbankschema
 
