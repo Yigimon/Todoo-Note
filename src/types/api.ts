@@ -3,7 +3,7 @@
 import { TodoWithUserData } from './database';
 
 // Standard API response structure
-export interface StdApiRes<T = any> {
+export interface StandardApiRes<T = any> {
   success: boolean;
   message?: string;
   data?: T;
@@ -11,19 +11,19 @@ export interface StdApiRes<T = any> {
 }
 
 // Specific API response types for different endpoints
-export interface GetAllTodosApiRes extends StdApiRes<TodoWithUserData[]> {
+export interface GetAllTodosApiRes extends StandardApiRes<TodoWithUserData[]> {
   count?: number; // Additional field for total count
 }
 
-export interface GetSingleTodoApiRes extends StdApiRes<TodoWithUserData> {}
+export interface GetSingleTodoApiRes extends StandardApiRes<TodoWithUserData> {}
 
-export interface CreateTodoApiRes extends StdApiRes<TodoWithUserData> {}
+export interface CreateTodoApiRes extends StandardApiRes<TodoWithUserData> {}
 
-export interface UpdateTodoApiRes extends StdApiRes<TodoWithUserData> {}
+export interface UpdateTodoApiRes extends StandardApiRes<TodoWithUserData> {}
 
-export interface DeleteTodoApiRes extends StdApiRes<null> {}
+export interface DeleteTodoApiRes extends StandardApiRes<null> {}
 
-export interface ApiErrorRes extends StdApiRes<null> {
+export interface ApiErrorRes extends StandardApiRes<null> {
   success: false;
   error: string;
   message: string;
