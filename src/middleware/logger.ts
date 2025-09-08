@@ -1,24 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
 
-export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
-  const start = Date.now();
+export const httpRequestLoggerMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const requestStartTimestamp = Date.now();
   
-  // Log request
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  // Log incoming HTTP request
+  console.log(`[${new Date().toISOString()}] INCOMING: ${req.method} ${req.path}`);
   
-  // Log response when finished
+  // Log HTTP response when request is finished
   res.on('finish', () => {
-    const duration = Date.now() - start;
+    const requestDurationMs = Date.now() - requestStartTimestamp;
     console.log(
-      `[${new Date().toISOString()}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`
+      `[${new Date().toISOString()}] COMPLETED: ${req.method} ${req.path} - Status:${res.statusCode} Duration:${requestDurationMs}ms`
     );
   });
   
   next();
 };
 
-export const errorLogger = (err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error(`[ERROR] ${new Date().toISOString()} - ${err.message}`);
-  console.error(`Stack: ${err.stack}`);
-  next(err);
+export const errorLoggerMiddleware = (serverError: any, req: Request, res: Response, next: NextFunction) => {
+  console.error(`[ERROR] ${new Date().toISOString()} - Message: ${serverError.message}`);
+  console.error(`[ERROR] Route: ${req.method} ${req.path}`);
+  console.error(`[ERROR] Stack: ${serverError.stack}`);
+  next(serverError);
 };
+
+//! TODO: Implement persistent logger with "winston" for production 

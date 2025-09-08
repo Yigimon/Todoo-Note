@@ -1,48 +1,48 @@
 /*
- * TODO: DIESE ROUTES SIND BEREIT ABER NICHT VERBUNDEN!
+ * TODO ROUTES - READY BUT NOT CONNECTED TO SERVER!
  * 
- * ✅ Routes sind definiert
- * ✅ Controller sind verlinkt  
- * ✅ Validation ist eingebaut
+ * ✅ Routes are defined
+ * ✅ Controllers are linked  
+ * ✅ Validation is implemented
  * 
- * ❌ PROBLEM: Diese Routes sind nicht mit dem Server verbunden!
+ * ❌ PROBLEM: These routes are not connected to the server!
  * 
- * LÖSUNG: In src/index.ts hinzufügen:
+ * SOLUTION: Add to src/index.ts:
  * import todoRoutes from './routes/todos';
  * app.use('/api/todos', todoRoutes);
  * 
- * DANN FUNKTIONIEREN:
- * GET    /api/todos     -> Alle Todos
- * POST   /api/todos     -> Neues Todo erstellen
- * GET    /api/todos/:id -> Ein Todo abrufen
- * PUT    /api/todos/:id -> Todo updaten
- * DELETE /api/todos/:id -> Todo löschen
- * GET    /api/todos/user/:userId -> Alle Todos eines Users
+ * THEN THESE WILL WORK:
+ * GET    /api/todos     -> Get all todos
+ * POST   /api/todos     -> Create new todo
+ * GET    /api/todos/:id -> Get single todo
+ * PUT    /api/todos/:id -> Update todo
+ * DELETE /api/todos/:id -> Delete todo
+ * GET    /api/todos/user/:userId -> Get all todos for user
  */
 
 import { Router } from 'express';
 import { TodoController } from '../controllers/todoController';
 import { validate } from '../middleware/validation';
-import { createTodoSchema, updateTodoSchema, todoParamsSchema, userParamsSchema } from '../schemas';
+import { createTodoValSchema, updateTodoValSchema, todoIdValSchema, userIdValSchema, todoFilterQuerySchema } from '../schemas/zod_index';
 
-const router = Router();
+const todoApiRouter = Router();
 
-// GET /api/todos - Alle Todos abrufen
-router.get('/api/todos', TodoController.getAllTodos);
+// GET / - Get all todos with user data + optional filtering
+todoApiRouter.get('/', validate(todoFilterQuerySchema), TodoController.getAllTodosWithUserData);
 
-// POST /api/todos - Neues Todo erstellen
-router.post('/api/todos', validate(createTodoSchema), TodoController.createTodo);
+// POST / - Create new todo with user relation
+todoApiRouter.post('/', validate(createTodoValSchema), TodoController.createNewTodoWithUser);
 
-// GET /api/todos/:id - Spezifisches Todo abrufen
-router.get('/api/todos:id', validate(todoParamsSchema), TodoController.getTodoById);
+// GET /:id - Get specific todo with user data
+todoApiRouter.get('/:id', validate(todoIdValSchema), TodoController.getSingleTodoWithUser);
 
-// PUT /api/todos/:id - Todo aktualisieren
-router.put('/api/todos/:id', validate(todoParamsSchema.merge(updateTodoSchema)), TodoController.updateTodo);
+// PUT /:id - Update existing todo
+todoApiRouter.put('/:id', validate(todoIdValSchema.merge(updateTodoValSchema)), TodoController.updateExistingTodoWithUser);
 
-// DELETE /api/todos/:id - Todo löschen
-router.delete('/api/todos/:id', validate(todoParamsSchema), TodoController.deleteTodo);
+// DELETE /:id - Delete todo by ID
+todoApiRouter.delete('/:id', validate(todoIdValSchema), TodoController.deleteExistingTodoById);
 
-// GET /api/todos/user/:userId - Alle Todos eines Users abrufen
-router.get('/api/todus/user/:userId', validate(userParamsSchema), TodoController.getTodosByUser);
+// GET /user/:userId - Get all todos for specific user
+todoApiRouter.get('/user/:userId', validate(userIdValSchema), TodoController.getTodosByUserWithUserData);
 
-export default router;
+export default todoApiRouter;

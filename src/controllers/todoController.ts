@@ -1,284 +1,171 @@
 import { Request, Response } from 'express';
-import { prisma } from '../index';
+import { prismaDbClient } from '../index';
+import { ResponseHelper } from '../utils/responseHelper';
+import { UserSelectHelper } from '../utils/databaseHelper';
+import { TodoFilterQuery } from '../schemas/zod_index';
 
-/*
- * ✅ CONTROLLER STATUS - ALLE FERTIG IMPLEMENTIERT!
- * 
- * 1. ✅ getAllTodos ist FERTIG implementiert
- * 2. ✅ createTodo ist FERTIG implementiert  
- * 3. ✅ getTodoById ist FERTIG implementiert
- * 4. ✅ updateTodo ist FERTIG implementiert  
- * 5. ✅ deleteTodo ist FERTIG implementiert
- * 6. ✅ getTodosByUser ist FERTIG implementiert
- * 
- * ✅ Routes sind mit dem Server verbunden!
- * ❌ Die Datenbank muss noch erstellt werden (Migration fehlt)
- * 
- * NÄCHSTER SCHRITT:
- * 1. Database Migration ausführen: pnpm prisma:migrate
- * 2. Testen mit: GET http://localhost:3000/api/todos
- */
+// Import types from organized files
+import { TodoUpdateDbData } from '../types/database';
+import { 
+  GetAllTodosApiRes, 
+  GetSingleTodoApiRes, 
+  CreateTodoApiRes, 
+  UpdateTodoApiRes, 
+  DeleteTodoApiRes, 
+  ApiErrorRes 
+} from '../types/api';
+
+
 export class TodoController {
-  // Alle Todos abrufen
-  static async getAllTodos(req: Request, res: Response) {
+  // Retrieve all todos with user data included + filtering
+  static async getAllTodosWithUserData(req: Request, res: Response<GetAllTodosApiRes | ApiErrorRes>) {
     try {
-      // 1. Alle Todos aus der Datenbank abrufen
-      const todos = await prisma.todo.findMany({
-        // 2. Zusätzlich User-Daten mit laden (JOIN)
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-              // ohne Passwort für Sicherheit
-            }
-          }
-        },
-        // 3. Sortierung: Neueste zuerst
-        orderBy: {
-          createdAt: 'desc'
-        }
+      // Extract and validate query parameters
+      const filters = req.query as unknown as TodoFilterQuery;
+      
+      // Build dynamic WHERE clause
+      const whereClause = UserSelectHelper.buildTodoFilter(filters);
+      
+      // Build dynamic ORDER BY
+      const orderBy = UserSelectHelper.buildTodoOrderBy(filters);
+      
+      // Build pagination
+      const take = filters.limit ? Math.min(filters.limit, 100) : undefined; // Max 100
+      const skip = filters.offset || undefined;
+
+      const allTodosFromDb = await prismaDbClient.todo.findMany({
+        where: whereClause,
+        include: UserSelectHelper.CORE_USER_SELECT,
+        orderBy: orderBy,
+        take: take,
+        skip: skip
       });
 
-      // 4. Erfolgreiche Antwort mit allen Todos
-      res.status(200).json({
-        success: true,
-        count: todos.length,
-        data: todos
-      });
-
-    } catch (error) {
-      // 5. Fehlerbehandlung
-      console.error('Error fetching todos:', error);
-      res.status(500).json({ 
-        success: false,
-        error: 'Internal server error',
-        message: 'Could not fetch todos'
-      });
+      ResponseHelper.send200(res, allTodosFromDb);
+    } catch (dbError) {
+      ResponseHelper.send500(res, 'Could not fetch todos', dbError);
     }
   }
 
-  // ✅ createTodo - FERTIG implementiert
-  static async createTodo(req: Request, res: Response) {
+  
+  static async createNewTodoWithUser(req: Request, res: Response<CreateTodoApiRes | ApiErrorRes>) {
     try {
-      // 1. Validierte Daten aus Request body verwenden
-      const todoData = {
+      const newTodoDataForDb = {
         title: req.body.title,
         description: req.body.description || null,
-        userId: req.body.userId, // WICHTIG: UserId muss mitgesendet werden
+        userId: req.body.userId, 
         expiresAt: req.body.expiresAt ? new Date(req.body.expiresAt) : null,
         tags: req.body.tags || [],
         reminder: req.body.reminder ? new Date(req.body.reminder) : null,
       };
 
-      // 2. Todo in Datenbank erstellen
-      const todo = await prisma.todo.create({
-        data: todoData,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
-        }
+      const createdTodoFromDb = await prismaDbClient.todo.create({
+        data: newTodoDataForDb,
+        include: UserSelectHelper.CORE_USER_SELECT
       });
 
-      // 3. Erfolgreiche Response
-      res.status(201).json({
-        success: true,
-        message: `Todo '${todo.title}' created successfully`,
-        data: todo
-      });
-
-    } catch (error) {
-      console.error('Error creating todo:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-        message: 'Could not create todo'
-      });
+      ResponseHelper.send200(res, createdTodoFromDb, 201, `Todo '${createdTodoFromDb.title}' created successfully`);
+    } catch (dbCreationError) {
+      ResponseHelper.send500(res, 'Could not create todo', dbCreationError);
     }
   }
 
- 
-  static async getTodoById(req: Request, res: Response) {
-    try { const {id} = req.params;
-    const todo = await prisma.todo.findUnique({
-      where : {id},
-      include : { user: 
-        {
-          select:
-           {
-             id: true, name: true, email: true
-            }
-          }
-        }
-    });
-    if (!todo)return res.status(404).json({message: "Todo not found"});
-    res.json({success: true, data: todo});    
-     
-    }
-     catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-
-  // ✅ updateTodo - FERTIG implementiert
-  static async updateTodo(req: Request, res: Response) {
-    try {
-      // 1. ID aus URL-Parameter
-      const { id } = req.params;
+  static async getSingleTodoWithUser(req: Request, res: Response<GetSingleTodoApiRes | ApiErrorRes>) {
+    try { 
+      const { id: todoIdFromParams } = req.params;
       
-      // 2. Prüfen ob Todo existiert
-      const existingTodo = await prisma.todo.findUnique({
-        where: { id }
+      const singleTodoFromDb = await prismaDbClient.todo.findUnique({
+        where: { id: todoIdFromParams },
+        include: UserSelectHelper.CORE_USER_SELECT
       });
       
-      if (!existingTodo) {
-        return res.status(404).json({
-          success: false,
-          message: 'Todo not found'
-        });
+      if (!singleTodoFromDb) {
+        return ResponseHelper.send404(res, "Todo not found");
       }
-
-      // 3. Update-Daten vorbereiten (nur geänderte Felder)
-      const updateData: any = {};
-      if (req.body.title !== undefined) updateData.title = req.body.title;
-      if (req.body.description !== undefined) updateData.description = req.body.description;
-      if (req.body.status !== undefined) updateData.status = req.body.status;
-      if (req.body.expiresAt !== undefined) updateData.expiresAt = req.body.expiresAt ? new Date(req.body.expiresAt) : null;
-      if (req.body.tags !== undefined) updateData.tags = req.body.tags;
-      if (req.body.reminder !== undefined) updateData.reminder = req.body.reminder ? new Date(req.body.reminder) : null;
-
-      // 4. Todo aktualisieren
-      const updatedTodo = await prisma.todo.update({
-        where: { id },
-        data: updateData,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
-        }
-      });
-
-      // 5. Erfolgreiche Response
-      res.status(200).json({
-        success: true,
-        message: `Todo '${updatedTodo.title}' updated successfully`,
-        data: updatedTodo
-      });
-
-    } catch (error) {
-      console.error('Error updating todo:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-        message: 'Could not update todo'
-      });
+      
+      ResponseHelper.send200(res, singleTodoFromDb);
+    } catch (dbFetchError) {
+      ResponseHelper.send500(res, 'Could not fetch todo', dbFetchError);
     }
   }
 
-  // ✅ deleteTodo - FERTIG implementiert
-  static async deleteTodo(req: Request, res: Response) {
+
+  static async updateExistingTodoWithUser(req: Request, res: Response<UpdateTodoApiRes | ApiErrorRes>) {
     try {
-      // 1. ID aus URL-Parameter
-      const { id } = req.params;
-
-      // 2. Prüfen ob Todo existiert
-      const existingTodo = await prisma.todo.findUnique({
-        where: { id }
+      const { id: todoIdToUpdate } = req.params;
+      
+      const existingTodoFromDb = await prismaDbClient.todo.findUnique({
+        where: { id: todoIdToUpdate }
       });
-
-      if (!existingTodo) {
-        return res.status(404).json({
-          success: false,
-          message: 'Todo not found'
-        });
+      
+      if (!existingTodoFromDb) {
+        return ResponseHelper.send404(res, 'Todo not found');
       }
 
-      // 3. Todo löschen
-      await prisma.todo.delete({
-        where: { id }
+      const todoUpdateDataForDb: TodoUpdateDbData = {};
+      if (req.body.title !== undefined) todoUpdateDataForDb.title = req.body.title;
+      if (req.body.description !== undefined) todoUpdateDataForDb.description = req.body.description;
+      if (req.body.status !== undefined) todoUpdateDataForDb.status = req.body.status;
+      if (req.body.expiresAt !== undefined) todoUpdateDataForDb.expiresAt = req.body.expiresAt ? new Date(req.body.expiresAt) : null;
+      if (req.body.tags !== undefined) todoUpdateDataForDb.tags = req.body.tags;
+      if (req.body.reminder !== undefined) todoUpdateDataForDb.reminder = req.body.reminder ? new Date(req.body.reminder) : null;
+
+      const updatedTodoFromDb = await prismaDbClient.todo.update({
+        where: { id: todoIdToUpdate },
+        data: todoUpdateDataForDb,
+        include: UserSelectHelper.CORE_USER_SELECT
       });
 
-      // 4. Erfolgreiche Response
-      res.status(200).json({
-        success: true,
-        message: `Todo '${existingTodo.title}' deleted successfully`
-      });
-
-    } catch (error) {
-      console.error('Error deleting todo:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-        message: 'Could not delete todo'
-      });
+      ResponseHelper.send200(res, updatedTodoFromDb, 200, `Todo '${updatedTodoFromDb.title}' updated successfully`);
+    } catch (dbUpdateError) {
+      ResponseHelper.send500(res, 'Could not update todo', dbUpdateError);
     }
   }
 
-  // ✅ getTodosByUser - FERTIG implementiert
-  static async getTodosByUser(req: Request, res: Response) {
-    try {
-      // 1. userId aus URL-Parameter
-      const { userId } = req.params;
 
-      // 2. Prüfen ob User existiert
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
+  static async deleteExistingTodoById(req: Request, res: Response<DeleteTodoApiRes | ApiErrorRes>) {
+    try {
+      const { id: todoIdToDelete } = req.params;
+
+      const existingTodoFromDb = await prismaDbClient.todo.findUnique({
+        where: { id: todoIdToDelete }
       });
 
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
+      if (!existingTodoFromDb) {
+        return ResponseHelper.send404(res, 'Todo not found');
       }
 
-      // 3. Alle Todos des Users abrufen
-      const todos = await prisma.todo.findMany({
-        where: { userId },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
+      await prismaDbClient.todo.delete({
+        where: { id: todoIdToDelete }
       });
 
-      // 4. Erfolgreiche Response
-      res.status(200).json({
-        success: true,
-        count: todos.length,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email
-        },
-        data: todos
+      ResponseHelper.send200(res, null, 200, `Todo '${existingTodoFromDb.title}' deleted successfully`);
+    } catch (dbDeletionError) {
+      ResponseHelper.send500(res, 'Could not delete todo', dbDeletionError);
+    }
+  }
+
+  static async getTodosByUserWithUserData(req: Request, res: Response<GetAllTodosApiRes | ApiErrorRes>) {
+    try {
+      const { userId: targetUserIdFromParams } = req.params;
+
+      const userFromDb = await prismaDbClient.user.findUnique({
+        where: { id: targetUserIdFromParams }
       });
 
-    } catch (error) {
-      console.error('Error fetching todos by user:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-        message: 'Could not fetch user todos'
+      if (!userFromDb) {
+        return ResponseHelper.send404(res, 'User not found');
+      }
+
+      const userTodosFromDb = await prismaDbClient.todo.findMany({
+        where: { userId: targetUserIdFromParams },
+        include: UserSelectHelper.CORE_USER_SELECT,
+        orderBy: { createdAt: 'desc' }
       });
+
+      ResponseHelper.send200(res, userTodosFromDb);
+    } catch (dbFetchUserTodosError) {
+      ResponseHelper.send500(res, 'Could not fetch user todos', dbFetchUserTodosError);
     }
   }
 }
