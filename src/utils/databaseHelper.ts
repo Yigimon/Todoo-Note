@@ -66,6 +66,20 @@ export class UserSelectHelper {
       whereClause.expiresAt = { gte: startOfDay, lt: nextDay };
     }
 
+    // Tag Filter
+    if (filters.hasTag) {
+      whereClause.tags = {
+        has: filters.hasTag  // Prisma: JSON Array enthält den Wert
+      };
+    }
+    
+    if (filters.tags) {
+      const tagArray = filters.tags.split(',').map(tag => tag.trim());
+      whereClause.tags = {
+        hasEvery: tagArray  // Prisma: JSON Array enthält ALLE diese Werte
+      };
+    }
+
     return whereClause;
   }
 

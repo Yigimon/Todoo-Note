@@ -5,186 +5,156 @@
 - **Backend Framework**: Express.js mit TypeScript  
 - **Datenbank**: PostgreSQL mit Prisma ORM
 - **Validierung**: Zod Schemas
-- **Query Filtering**: Prisma Query API
+- **Query Filtering**: Prisma Query API mit Advanced Filtering
 - **Type Safety**: TypeScript + Prisma Client
 - **Middleware**: Custom Validation & Logging
+- **Development**: Hot Reload mit Nodemon
 
 ## 📁 Projekt-Struktur
 
 ```
 src/
-├── controllers/          # Route-Handler (Controller)
+├── controllers/         # Route-Handler (Controller)
 ├── routes/              # API-Routen
-├── middleware/          # Custom Middleware
+├── middleware/          # Custom Validation & Logging
 ├── schemas/             # Zod-Validierungsschemas
-├── index.ts             # Haupt-Server-Datei
-├── types                # Typenvalidierung für Response
-└── utils                # Auslagerung in Klassen 
+├── types/               # TypeScript Type Definitions
+├── utils/               # Helper Classes (Database, Response)
+└── index.ts             # Haupt-Server-Datei
 prisma/
-└── schema.prisma        # Datenbankschema
-
-test-api.js             # Einfache Test-Datei
+├── schema.prisma        # Datenbankschema
+├── seed.ts              # Database Seeding
+└── migrations/          # Database Migrations
 ```
 
-## 🛠️ Implementierte Features
+## � API-Endpunkte & Query-Parameter
 
-### ✅ Core Features (Fertig)
-- ✅ Express + TypeScript Setup
-- ✅ PostgreSQL + Prisma Integration  
-- ✅ Zod-Validierung für alle Endpunkte
-- ✅ Router/Controller-Struktur
-- ✅ Logging Middleware
-- ✅ Vollständige CRUD-Operationen für Todos
-- ✅ Type-safe API Responses
-- ✅ Prisma-basierte Query-Filterung
+### **Base URL:** `http://localhost:3000`
 
-### ✅ Todo-Funktionen (Implementiert)
-- ✅ **Titel** (max 64 Zeichen, erforderlich)
-- ✅ **Beschreibung** (max 512 Zeichen, optional)
-- ✅ **Status** (NEW/OPEN/COMPLETED Enum)
-- ✅ **Ablaufdatum** (expiresAt, optional)
-- ✅ **Tags** (String Array für Kategorisierung)
-- ✅ **Erinnerungen** (remindAt, optional)
-- ✅ **User-Zuordnung** (userId mit CUID)
-- ✅ **Automatische Timestamps** (createdAt/updatedAt)
+### **Todo Routes:**
 
-### 🔄 Geplante Features
-- 🔄 User-Authentifizierung (Passport.js)
-- 🔄 Erweiterte Filterung (Tags, Datum, Beschreibung)
-- 🔄 Pagination für große Datenmengen
-- 🔄 Rechteverwaltung via CASL
-- 🔄 E-Mail-Benachrichtigungen
-- 🔄 Full-Text-Suche
+#### **1. Alle Todos abrufen (mit erweiterten Filtern)**
+```http
+GET /api/todos
+```
 
-##  Setup & Installation
-
-1. **Repository klonen**:
-   ```bash
-   git clone https://github.com/Yigimon/Todoo-Note.git
-   cd Todoo-Note
-   ```
-
-2. **Abhängigkeiten installieren**:
-   ```bash
-   pnpm install
-   ```
-
-3. **Umgebungsvariablen konfigurieren**:
-   - Erstelle `.env` Datei im Root-Verzeichnis
-   - Konfiguriere deine PostgreSQL-Datenbankverbindung:
-   ```env
-   DATABASE_URL="postgresql://username:password@localhost:5432/todoo_note"
-   ```
-
-4. **Prisma konfigurieren**:
-   ```bash
-   # Prisma Client generieren
-   pnpm prisma generate
-   
-   # Datenbank-Migration ausführen
-   pnpm prisma migrate dev
-   
-   # (Optional) Seed-Daten einfügen
-   pnpm prisma db seed
-   ```
-
-5. **Development-Server starten**:
-   ```bash
-   pnpm run dev
-   ```
-
-   Der Server läuft auf `http://localhost:3000`
-
-## 📋 Verfügbare Scripts
-
+**Query-Parameter (alle optional):**
 ```bash
-# Development
-pnpm run dev          # Server mit nodemon starten
-pnpm run build        # TypeScript kompilieren
-pnpm run start        # Produktions-Server starten
+# Text-basierte Filter
+?title=test                    # Suche im Titel
+?description=wichtig           # Suche in Beschreibung  
+?search=urgent                 # Suche in Titel UND Beschreibung
 
-# Prisma
-pnpm prisma studio    # Prisma Studio öffnen
-pnpm prisma migrate   # Migration ausführen
-pnpm prisma generate  # Prisma Client generieren
+# Status & User Filter
+?status=OPEN                   # Filter nach Status (NEW/OPEN/COMPLETED)
+?userId=cm123456789            # Filter nach bestimmtem User
+
+# Datum Filter (ISO Format: yyyy-mm-dd)
+?createdAt=2025-09-09          # Todos erstellt an diesem Tag
+?expiresAt=2025-12-31          # Todos die an diesem Tag ablaufen
+
+# Sortierung
+?sortBy=title                  # Sortieren nach: title, createdAt, status, expiresAt
+?sortOrder=asc                 # Reihenfolge: asc oder desc (default: desc)
 ```
 
-## 📊 API-Endpunkte
+**Beispiele:**
+```bash
+# Alle offenen Todos
+GET /api/todos?status=OPEN
 
-### Status
-- `GET /` - API-Information
-- `GET /health` - Health Check
+# Suche nach "wichtig" in Titel oder Beschreibung
+GET /api/todos?search=wichtig
 
-### Todos (vollständig implementiert)
-- `GET /api/todos` - Alle Todos abrufen (mit Filterung)
-- `POST /api/todos` - Neues Todo erstellen
-- `GET /api/todos/:id` - Spezifisches Todo abrufen
-- `PUT /api/todos/:id` - Todo aktualisieren
-- `DELETE /api/todos/:id` - Todo löschen
-- `GET /api/todos/user/:userId` - Alle Todos eines Users
+# Todos von heute, sortiert nach Titel
+GET /api/todos?createdAt=2025-09-09&sortBy=title&sortOrder=asc
 
-### Todo Datenmodell
-```typescript
+# Tag-Filter: Nur Todos mit "work" Tag
+GET /api/todos?hasTag=work
+
+# Mehrere Tags: Todos die sowohl "work" als auch "urgent" haben
+GET /api/todos?tags=work,urgent
+
+# Kombinierte Filter
+GET /api/todos?status=OPEN&hasTag=work&sortBy=expiresAt
+```
+
+#### **2. Einzelnes Todo abrufen**
+```http
+GET /api/todos/:id
+```
+
+#### **3. Neues Todo erstellen**
+```http
+POST /api/todos
+Content-Type: application/json
+
 {
-  id: string,           // CUID
-  title: string,        // Max 64 Zeichen
-  description?: string, // Max 512 Zeichen, optional
-  status: "NEW" | "OPEN" | "COMPLETED",
-  expiresAt?: Date,     // Optional
-  tags: string[],       // Array von Tags
-  remindAt?: Date,      // Optional
-  createdAt: Date,
-  updatedAt: Date,
-  userId: string,       // CUID des Users
-  user: {               // Embedded User-Daten
-    id: string,
-    name?: string,
-    email: string
-  }
+  "title": "Neue Aufgabe",
+  "description": "Beschreibung der Aufgabe",
+  "userId": "cm123456789",
+  "expiresAt": "2025-12-31T23:59:59Z",
+  "tags": ["work", "important"],
+  "reminder": "2025-12-30T10:00:00Z"
 }
 ```
 
-## 🔍 Aktuelle Filterung & Suche
+#### **4. Todo aktualisieren**
+```http
+PUT /api/todos/:id
+Content-Type: application/json
 
-Die `GET /api/todos` Route unterstützt folgende **implementierte** Filter über Query-Parameter:
-
-### 🟢 Implementierte Filter
-
-#### Text-basierte Filter
-```bash
-# Suche nach Titel (case-insensitive)
-GET /api/todos?title=einkaufen
+{
+  "title": "Aktualisierter Titel",
+  "status": "COMPLETED",
+  "description": "Neue Beschreibung"
+}
 ```
 
-#### Status & User Filter
-```bash
-# Todos mit bestimmtem Status
-GET /api/todos?status=NEW
-GET /api/todos?status=OPEN  
-GET /api/todos?status=COMPLETED
-
-# Todos von bestimmtem User (CUID)
-GET /api/todos?userId=clm123abc456def789
+#### **5. Todo löschen**
+```http
+DELETE /api/todos/:id
 ```
 
-#### Sortierung
-```bash
-# Nach Feld sortieren (implementiert)
-GET /api/todos?sortBy=createdAt&sortOrder=desc  # Standard
-GET /api/todos?sortBy=title&sortOrder=asc
-GET /api/todos?sortBy=status&sortOrder=desc
+## 🔍 Advanced Filtering Beispiele
 
-# Verfügbare sortBy Optionen:
-# - createdAt (Standard), title, status
+### **Kombination mehrerer Filter:**
+```bash
+# Alle offenen Todos von User XYZ mit "projekt" im Text
+GET /api/todos?userId=cm123&status=OPEN&search=projekt
+
+# Todos die heute ablaufen, sortiert nach Priorität
+GET /api/todos?expiresAt=2025-09-09&sortBy=title
+
+# Alle Todos mit "urgent" im Titel, erstellt in letzter Woche
+GET /api/todos?title=urgent&createdAt=2025-09-02
 ```
 
-#### Kombinierte Filter
-```bash
-# Alle offenen Todos eines Users, nach Titel sortiert
-GET /api/todos?status=OPEN&userId=clm123abc456def789&sortBy=title&sortOrder=asc
-
-# Todos mit Titel-Suche und Status
-GET /api/todos?title=projekt&status=NEW&sortBy=createdAt
+### **Response Format:**
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "id": "cm123456789",
+      "title": "Wichtige Aufgabe",
+      "description": "Das muss heute fertig werden",
+      "status": "OPEN",
+      "expiresAt": "2025-09-09T23:59:59.000Z",
+      "tags": ["work", "urgent"],
+      "remindAt": "2025-09-09T10:00:00.000Z",
+      "createdAt": "2025-09-09T08:00:00.000Z",
+      "updatedAt": "2025-09-09T08:00:00.000Z",
+      "userId": "cm987654321",
+      "user": {
+        "id": "cm987654321",
+        "name": "Max Mustermann",
+        "email": "max@example.com"
+      }
+    }
+  ]
+}
 ```
 
 ### 🔧 Aktuell unterstützte Parameter
@@ -194,27 +164,16 @@ GET /api/todos?title=projekt&status=NEW&sortBy=createdAt
 | `title` | string | ✅ Implementiert | Suche im Titel (case-insensitive) | `?title=einkaufen` |
 | `status` | enum | ✅ Implementiert | Todo-Status (NEW/OPEN/COMPLETED) | `?status=COMPLETED` |
 | `userId` | string | ✅ Implementiert | User-ID (CUID) | `?userId=clm123abc456def789` |
+| `hasTag` | string | ✅ Implementiert | Hat bestimmten Tag | `?hasTag=work` |
+| `tags` | string | ✅ Implementiert | Hat alle Tags (komma-getrennt) | `?tags=work,urgent` |
 | `sortBy` | enum | ✅ Implementiert | Sortierfeld (createdAt/title/status) | `?sortBy=createdAt` |
 | `sortOrder` | enum | ✅ Implementiert | Sortierreihenfolge (asc/desc) | `?sortOrder=desc` |
 
-### 🔄 Geplante Erweiterungen
+### 🔄 Noch nicht implementierte Features
 
-Diese Filter sind noch **nicht implementiert**, aber im Schema vorbereitet:
+Diese Filter sind noch **nicht implementiert**:
 
-```bash
-# Datum-Filter (geplant)
-GET /api/todos?expiresAfter=2025-01-01T00:00:00.000Z
-GET /api/todos?expiresBefore=2025-12-31T23:59:59.000Z
 
-# Tag-Filter (geplant)
-GET /api/todos?tags=work,urgent
-GET /api/todos?hasTag=urgent
-
-# Erweiterte Suche (geplant)
-GET /api/todos?description=projekt
-
-# Pagination (geplant)
-GET /api/todos?limit=10&offset=20
 ```
 
 ##  Testen der API

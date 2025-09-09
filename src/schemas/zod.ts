@@ -57,6 +57,10 @@ export const todoFilterQuerySchema = z.object({
   createdAt: z.string().date().optional(),            // Erstellt an diesem Tag
   expiresAt: z.string().date().optional(),            // Läuft an diesem Tag ab
   
+  // Tag Filter
+  hasTag: z.string().optional(),                      // Hat bestimmten Tag
+  tags: z.string().optional(),                        // Komma-getrennte Tags: "work,urgent"
+  
   // Sorting
   sortBy: z.enum(['createdAt', 'title', 'status', 'expiresAt']).default('createdAt').optional(),
   sortOrder: z.enum(['asc', 'desc']).default('desc').optional(),
