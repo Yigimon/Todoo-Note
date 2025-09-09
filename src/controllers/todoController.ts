@@ -2,43 +2,30 @@ import { Request, Response } from 'express';
 import { prismaDbClient } from '../index';
 import { ResponseHelper } from '../utils/responseHelper';
 import { UserSelectHelper } from '../utils/databaseHelper';
-import { TodoFilterQuery } from '../schemas/zod_index';
 
-// Import types from organized files
-import { TodoUpdateDbData } from '../types/database';
-import { 
-  GetAllTodosApiRes, 
-  GetSingleTodoApiRes, 
-  CreateTodoApiRes, 
-  UpdateTodoApiRes, 
-  DeleteTodoApiRes, 
-  ApiErrorRes 
-} from '../types/api';
+// Grouped type imports
+import type { TodoFilterQuery } from '../types/requests';
+import type { TodoUpdateDbData } from '../types/database';
+import type * as ApiTypes from '../types/apiRes';
 
 
 export class TodoController {
-  // Retrieve all todos with user data included + filtering
-  static async getAllTodosWithUserData(req: Request, res: Response<GetAllTodosApiRes | ApiErrorRes>) {
+  // Retrieve all todos with basic filtering
+  static async getAllTodosWithUserData(req: Request, res: Response<ApiTypes.GetAllTodosApiRes | ApiTypes.ApiErrorRes>) {
     try {
-      // Extract and validate query parameters
+      // Simple query parameters
       const filters = req.query as unknown as TodoFilterQuery;
       
-      // Build dynamic WHERE clause
+      // Build basic WHERE clause
       const whereClause = UserSelectHelper.buildTodoFilter(filters);
       
-      // Build dynamic ORDER BY
+      // Build basic ORDER BY
       const orderBy = UserSelectHelper.buildTodoOrderBy(filters);
-      
-      // Build pagination
-      const take = filters.limit ? Math.min(filters.limit, 100) : undefined; // Max 100
-      const skip = filters.offset || undefined;
 
       const allTodosFromDb = await prismaDbClient.todo.findMany({
         where: whereClause,
         include: UserSelectHelper.CORE_USER_SELECT,
-        orderBy: orderBy,
-        take: take,
-        skip: skip
+        orderBy: orderBy
       });
 
       ResponseHelper.send200(res, allTodosFromDb);
@@ -48,7 +35,7 @@ export class TodoController {
   }
 
   
-  static async createNewTodoWithUser(req: Request, res: Response<CreateTodoApiRes | ApiErrorRes>) {
+  static async createNewTodoWithUser(req: Request, res: Response<ApiTypes.CreateTodoApiRes | ApiTypes.ApiErrorRes>) {
     try {
       const newTodoDataForDb = {
         title: req.body.title,
@@ -70,7 +57,7 @@ export class TodoController {
     }
   }
 
-  static async getSingleTodoWithUser(req: Request, res: Response<GetSingleTodoApiRes | ApiErrorRes>) {
+  static async getSingleTodoWithUser(req: Request, res: Response<ApiTypes.GetSingleTodoApiRes | ApiTypes.ApiErrorRes>) {
     try { 
       const { id: todoIdFromParams } = req.params;
       
@@ -90,7 +77,7 @@ export class TodoController {
   }
 
 
-  static async updateExistingTodoWithUser(req: Request, res: Response<UpdateTodoApiRes | ApiErrorRes>) {
+  static async updateExistingTodoWithUser(req: Request, res: Response<ApiTypes.UpdateTodoApiRes | ApiTypes.ApiErrorRes>) {
     try {
       const { id: todoIdToUpdate } = req.params;
       
@@ -123,7 +110,7 @@ export class TodoController {
   }
 
 
-  static async deleteExistingTodoById(req: Request, res: Response<DeleteTodoApiRes | ApiErrorRes>) {
+  static async deleteExistingTodoById(req: Request, res: Response<ApiTypes.DeleteTodoApiRes | ApiTypes.ApiErrorRes>) {
     try {
       const { id: todoIdToDelete } = req.params;
 
@@ -142,30 +129,6 @@ export class TodoController {
       ResponseHelper.send200(res, null, 200, `Todo '${existingTodoFromDb.title}' deleted successfully`);
     } catch (dbDeletionError) {
       ResponseHelper.send500(res, 'Could not delete todo', dbDeletionError);
-    }
-  }
-
-  static async getTodosByUserWithUserData(req: Request, res: Response<GetAllTodosApiRes | ApiErrorRes>) {
-    try {
-      const { userId: targetUserIdFromParams } = req.params;
-
-      const userFromDb = await prismaDbClient.user.findUnique({
-        where: { id: targetUserIdFromParams }
-      });
-
-      if (!userFromDb) {
-        return ResponseHelper.send404(res, 'User not found');
-      }
-
-      const userTodosFromDb = await prismaDbClient.todo.findMany({
-        where: { userId: targetUserIdFromParams },
-        include: UserSelectHelper.CORE_USER_SELECT,
-        orderBy: { createdAt: 'desc' }
-      });
-
-      ResponseHelper.send200(res, userTodosFromDb);
-    } catch (dbFetchUserTodosError) {
-      ResponseHelper.send500(res, 'Could not fetch user todos', dbFetchUserTodosError);
     }
   }
 }

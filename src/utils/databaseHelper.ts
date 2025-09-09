@@ -1,4 +1,4 @@
-import { TodoFilterQuery } from '../schemas/zod_index';
+import { TodoFilterQuery } from '../types/requests';
 import { Prisma } from '@prisma/client';
 
 /**
@@ -17,19 +17,10 @@ export class UserSelectHelper {
   } as const;
 
   /**
-   * Erstellt Prisma WHERE-Klausel basierend auf Query-Parametern
+   * Erweiterte Todo Filter - alle Optionen kombinierbar
    */
   static buildTodoFilter(filters: TodoFilterQuery): Prisma.TodoWhereInput {
     const whereClause: Prisma.TodoWhereInput = {};
-
-    // Text-basierte Filter
-    if (filters.title) {
-      whereClause.title = { contains: filters.title, mode: 'insensitive' };
-    }
-
-    if (filters.description) {
-      whereClause.description = { contains: filters.description, mode: 'insensitive' };
-    }
 
     // Status Filter
     if (filters.status) {
@@ -41,56 +32,49 @@ export class UserSelectHelper {
       whereClause.userId = filters.userId;
     }
 
-    if (filters.userName) {
-      whereClause.user = {
-        name: { contains: filters.userName, mode: 'insensitive' }
-      };
+    // Text Search
+    if (filters.title) {
+      whereClause.title = { contains: filters.title, mode: 'insensitive' };
     }
 
-    // Date Filter
-    if (filters.expiresAfter || filters.expiresBefore) {
-      whereClause.expiresAt = {};
-      if (filters.expiresAfter) {
-        whereClause.expiresAt.gte = new Date(filters.expiresAfter);
-      }
-      if (filters.expiresBefore) {
-        whereClause.expiresAt.lte = new Date(filters.expiresBefore);
-      }
+    if (filters.description) {
+      whereClause.description = { contains: filters.description, mode: 'insensitive' };
     }
 
-    if (filters.createdAfter || filters.createdBefore) {
-      whereClause.createdAt = {};
-      if (filters.createdAfter) {
-        whereClause.createdAt.gte = new Date(filters.createdAfter);
-      }
-      if (filters.createdBefore) {
-        whereClause.createdAt.lte = new Date(filters.createdBefore);
-      }
+    // Kombinierte Suche in Titel UND Beschreibung
+    if (filters.search) {
+      whereClause.OR = [
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } }
+      ];
     }
 
-    // Tag Filter
-    if (filters.tags) {
-      const tagArray = filters.tags.split(',').map(tag => tag.trim());
-      whereClause.tags = { hasSome: tagArray };
+    // Datum Filter (ISO Format: yyyy-mm-dd -> ganzer Tag)
+    if (filters.createdAt) {
+      const date = new Date(filters.createdAt);
+      const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const nextDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+      
+      whereClause.createdAt = { gte: startOfDay, lt: nextDay };
     }
 
-    if (filters.hasTag) {
-      whereClause.tags = { has: filters.hasTag };
+    if (filters.expiresAt) {
+      const date = new Date(filters.expiresAt);
+      const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const nextDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+      
+      whereClause.expiresAt = { gte: startOfDay, lt: nextDay };
     }
 
     return whereClause;
   }
 
   /**
-   * Erstellt OrderBy für Sorting
+   * Erweiterte Sortierung
    */
   static buildTodoOrderBy(filters: TodoFilterQuery): Prisma.TodoOrderByWithRelationInput {
     const sortBy = filters.sortBy || 'createdAt';
     const sortOrder = filters.sortOrder || 'desc';
-
-    if (sortBy === 'userName') {
-      return { user: { name: sortOrder } };
-    }
 
     return { [sortBy]: sortOrder };
   }

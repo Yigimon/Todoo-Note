@@ -1,24 +1,24 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-import todoApiRouter from './routes/todos';
+import todoRouter from './routes/todos';
 import { httpRequestLoggerMiddleware, errorLoggerMiddleware } from './middleware/logger';
 
 // Environment and App Setup
 dotenv.config();
-const expressAppInstance = express();
+const app = express();
 const serverPortFromEnv = process.env.PORT || 3000;
 export const prismaDbClient = new PrismaClient();
 
 // Core Middleware Setup
-expressAppInstance.use(express.json());
-expressAppInstance.use(httpRequestLoggerMiddleware);
+app.use(express.json());
+app.use(httpRequestLoggerMiddleware);
 
 // API Routes Setup
-expressAppInstance.use("/api/todos", todoApiRouter);
+app.use("/api/todos", todoRouter);
 
 // Health Check Routes
-expressAppInstance.get('/', (req, res) => {
+app.get('/', (req, res) => {
   res.json({
     message: 'Todoo-Note Backend API Server',
     status: 'running',
@@ -26,7 +26,7 @@ expressAppInstance.get('/', (req, res) => {
   });
 });
 
-expressAppInstance.get('/health', async (req, res) => {
+app.get('/health', async (req, res) => {
   try {
     await prismaDbClient.$queryRaw`SELECT 1`;
     res.json({ 
@@ -45,10 +45,10 @@ expressAppInstance.get('/health', async (req, res) => {
 });
 
 // Error Handling Middleware
-expressAppInstance.use(errorLoggerMiddleware);
+app.use(errorLoggerMiddleware);
 
 // 404 Route Handler
-expressAppInstance.use('*', (req, res) => {
+app.use('*', (req, res) => {
   res.status(404).json({ 
     success: false,
     message: 'API route not found', 
@@ -58,7 +58,7 @@ expressAppInstance.use('*', (req, res) => {
 });
 
 // Start HTTP Server
-expressAppInstance.listen(serverPortFromEnv, () => {
+app.listen(serverPortFromEnv, () => {
   console.log(`🚀 Todoo-Note API Server running on http://localhost:${serverPortFromEnv}`);
   console.log(`📅 Started at: ${new Date().toISOString()}`);
 });

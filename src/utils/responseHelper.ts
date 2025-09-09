@@ -1,48 +1,50 @@
 import { Response } from 'express';
-import { ApiErrorRes } from '../types/api';
+import { ApiErrorRes } from '../types/apiRes';
 
 /**
- *Helper for diffrent response server status 
+ * Helper for different response server status 
  */
 export class ResponseHelper {
   
   /**
-   * 500 - Server Error 
+   * Generic response method
    */
-  static send500(res: Response, message: string, error?: unknown): void {
-    if (error) {
+  static sendResponse<T>(
+    res: Response, 
+    status: number, 
+    data?: T, 
+    message?: string, 
+    error?: string
+  ): void {
+    const isError = status >= 400;
+    
+    if (isError && error) {
       console.error(`Error: ${message}:`, error);
     }
-    
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error',
-      message
-    } as ApiErrorRes);
-  }
 
-  /**
-   * 404 - Not Found
-   */
-  static send404(res: Response, message: string): void {
-    res.status(404).json({
-      success: false,
-      error: 'Not Found',
-      message
-    } as ApiErrorRes);
-  }
-
-  /**
-   * 200/201 - Success Responses
-   */
-  static send200<T>(res: Response, data: T, status: number = 200, message?: string): void {
     const response = {
-      success: true,
+      success: !isError,
+      ...(data !== null && data !== undefined && { data }),
       ...(Array.isArray(data) && { count: data.length }),
-      data,
-      ...(message && { message })
+      ...(message && { message }),
+      ...(isError && { error: error || 'An error occurred' })
     };
-    
+
     res.status(status).json(response);
+  }
+
+  /**
+   * Convenience methods
+   */
+  static send500(res: Response, message: string, error?: unknown): void {
+    this.sendResponse(res, 500, null, message, 'Internal server error');
+  }
+
+  static send404(res: Response, message: string): void {
+    this.sendResponse(res, 404, null, message, 'Not Found');
+  }
+
+  static send200<T>(res: Response, data: T, status: number = 200, message?: string): void {
+    this.sendResponse(res, status, data, message);
   }
 }
