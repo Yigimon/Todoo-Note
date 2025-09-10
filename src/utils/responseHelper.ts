@@ -34,7 +34,7 @@ export class ResponseHelper {
   }
 
   /**
-   * Convenience methods
+   * error messages 
    */
   static send500(res: Response, message: string, error?: unknown): void {
     this.sendResponse(res, 500, null, message, 'Internal server error');

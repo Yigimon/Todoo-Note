@@ -13,7 +13,7 @@ export class TodoController {
   // Retrieve all todos with basic filtering
   static async getAllTodosWithUserData(req: Request, res: Response<ApiTypes.GetAllTodosApiRes | ApiTypes.ApiErrorRes>) {
     try {
-      // Simple query parameters
+      // query parameters
       const filters = req.query as unknown as TodoFilterQuery;
       
       // Build basic WHERE clause
