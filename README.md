@@ -159,18 +159,16 @@ GET /api/todos?title=urgent&createdAt=2025-09-02
 
 ### 🔧 Aktuell unterstützte Parameter
 
-| Parameter | Typ | Status | Beschreibung | Beispiel |
-|-----------|-----|--------|--------------|----------|
-| `title` | string | ✅ Implementiert | Suche im Titel (case-insensitive) | `?title=einkaufen` |
-| `status` | enum | ✅ Implementiert | Todo-Status (NEW/OPEN/COMPLETED) | `?status=COMPLETED` |
-| `userId` | string | ✅ Implementiert | User-ID (CUID) | `?userId=clm123abc456def789` |
-| `hasTag` | string | ✅ Implementiert | Hat bestimmten Tag | `?hasTag=work` |
-| `tags` | string | ✅ Implementiert | Hat alle Tags (komma-getrennt) | `?tags=work,urgent` |
-| `sortBy` | enum | ✅ Implementiert | Sortierfeld (createdAt/title/status) | `?sortBy=createdAt` |
-| `sortOrder` | enum | ✅ Implementiert | Sortierreihenfolge (asc/desc) | `?sortOrder=desc` |
+| Parameter | Typ | Beschreibung | Beispiel |
+|-----------|-----|--------------|----------|
+| `title` | string | Suche im Titel (case-insensitive) | `?title=einkaufen` |
+| `status` | enum | Todo-Status (NEW/OPEN/COMPLETED) | `?status=COMPLETED` |
+| `userId` | string | User-ID (CUID) | `?userId=clm123abc456def789` |
+| `hasTag` | string | Hat bestimmten Tag | `?hasTag=work` |
+| `tags` | string | Hat alle Tags (komma-getrennt) | `?tags=work,urgent` |
+| `sortBy` | enum | Sortierfeld (createdAt/title/status) | `?sortBy=createdAt` |
+| `sortOrder` | enum | Sortierreihenfolge (asc/desc) | `?sortOrder=desc` |
 
-### 🔄 Noch nicht implementierte Features
 
-Diese Filter sind noch **nicht implementiert**:
 
 
