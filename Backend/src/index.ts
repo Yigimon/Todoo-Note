@@ -7,7 +7,7 @@ import { httpRequestLoggerMiddleware, errorLoggerMiddleware } from './middleware
 // Environment and App Setup
 dotenv.config();
 const app = express();
-const serverPortFromEnv = process.env.PORT || 3000;
+const serverPortFromEnv = process.env.PORT || 3001;
 export const prismaDbClient = new PrismaClient();
 
 // Core Middleware Setup
@@ -51,7 +51,7 @@ app.use(errorLoggerMiddleware);
 app.use('*', (req, res) => {
   res.status(404).json({ 
     success: false,
-    message: 'API route not found', 
+    message: `YAhüüüü die Route gibt scheinbar nicht!!! Sieh zu das du Land gewinsch sonst, vergess ih mih. Gölllll jaaa`, 
     requestedPath: req.originalUrl,
     timestamp: new Date().toISOString()
   });

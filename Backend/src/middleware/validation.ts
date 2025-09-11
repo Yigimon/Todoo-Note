@@ -8,7 +8,7 @@ export const validate = (schema: z.ZodSchema) => {
     if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: 'Validation failed',
+        message: 'Validation failed du Hund',
         errors: result.error.errors.map(err => ({
           field: err.path.join('.'),
           message: err.message,

@@ -1,0 +1,28 @@
+/* Basis-Styles */
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background-color: bisque;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  background-color: aqua;
+}
+
+.app-header h1 {
+  color: #333;
+  margin: 0;
+  background-color: ;
+}
+
+.app-main {
+  background: rgb(61, 2, 2);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
