@@ -3,11 +3,16 @@ import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import todoRouter from './routes/todos';
 import { httpRequestLoggerMiddleware, errorLoggerMiddleware } from './middleware/logger';
+import cors from 'cors';
 
 // Environment and App Setup
 dotenv.config();
 const app = express();
 const serverPortFromEnv = process.env.PORT || 3001;
+
+// CORS Middleware
+app.use(cors());
+
 export const prismaDbClient = new PrismaClient();
 
 // Core Middleware Setup
