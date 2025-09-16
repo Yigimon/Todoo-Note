@@ -41,9 +41,10 @@ export class TodoController {
         title: req.body.title,
         description: req.body.description || null,
         userId: req.body.userId, 
+        priority: req.body.priority || 'MEDIUM',
         expiresAt: req.body.expiresAt ? new Date(req.body.expiresAt) : null,
         tags: req.body.tags || [],
-        reminder: req.body.reminder ? new Date(req.body.reminder) : null,
+        remindAt: req.body.remindAt ? new Date(req.body.remindAt) : null,
       };
 
       const createdTodoFromDb = await prismaDbClient.todo.create({
@@ -93,9 +94,10 @@ export class TodoController {
       if (req.body.title !== undefined) todoUpdateDataForDb.title = req.body.title;
       if (req.body.description !== undefined) todoUpdateDataForDb.description = req.body.description;
       if (req.body.status !== undefined) todoUpdateDataForDb.status = req.body.status;
+      if (req.body.priority !== undefined) todoUpdateDataForDb.priority = req.body.priority;
       if (req.body.expiresAt !== undefined) todoUpdateDataForDb.expiresAt = req.body.expiresAt ? new Date(req.body.expiresAt) : null;
       if (req.body.tags !== undefined) todoUpdateDataForDb.tags = req.body.tags;
-      if (req.body.reminder !== undefined) todoUpdateDataForDb.reminder = req.body.reminder ? new Date(req.body.reminder) : null;
+      if (req.body.remindAt !== undefined) todoUpdateDataForDb.remindAt = req.body.remindAt ? new Date(req.body.remindAt) : null;
 
       const updatedTodoFromDb = await prismaDbClient.todo.update({
         where: { id: todoIdToUpdate },

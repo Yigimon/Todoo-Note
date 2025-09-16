@@ -10,8 +10,12 @@
         "prisma:generate": "prisma generate",
         "prisma:migrate": "prisma migrate dev",
         "prisma:studio": "prisma studio",
+        "prisma:seed": "ts-node prisma/seed.ts",
         "test": "jest",
         "install:clean": "rm -rf node_modules pnpm-lock.yaml && pnpm install"
+    },
+    "prisma": {
+        "seed": "ts-node prisma/seed.ts"
     },
     "packageManager": "pnpm@10.15.0",
     "keywords": [

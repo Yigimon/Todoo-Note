@@ -48,6 +48,7 @@ model Todo {
   title       String
   description String?
   status      Status    @default(NEW)
+  priority    Priority  @default(MEDIUM)
   expiresAt   DateTime?
   tags        String[]
   remindAt    DateTime?
@@ -60,6 +61,12 @@ model Todo {
 
   
 }
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+} 
 
 enum Status {
   NEW

@@ -1,12 +1,16 @@
-import TodoList from './components/todos/TodoList';
+import MainTodos from './pages/MainTodos';
 import './App.css';
+import PrimarySearchAppBar from './components/common/appBar';
 
 function App() {
   return (
-   <div>
-    <h1>📝 Todoo Note</h1>
-    <TodoList />
-   </div>
+    <div>
+      <PrimarySearchAppBar /> 
+     <div>
+      <MainTodos />
+    </div>  
+    </div>
+   
   );
 }
 

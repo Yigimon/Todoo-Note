@@ -1,4 +1,4 @@
-import { Status } from '@prisma/client';
+import { Status, Priority } from '@prisma/client';
 import { z } from 'zod';
 
 
@@ -24,18 +24,20 @@ export const userLoginValSchema = z.object({
 export const createTodoValSchema = z.object({
   title: z.string().min(1, 'Title is required').max(64, "Title is to long"),
   description: z.string().max(512, "Description is to long").optional(),
+  priority: z.nativeEnum(Priority).default('MEDIUM').optional(),
   expiresAt: z.string().datetime().optional(),
   tags: z.array(z.string()).default([]).optional(), 
-  reminder: z.string().datetime().optional(),
+  remindAt: z.string().datetime().optional(),
 });
 
 export const updateTodoValSchema = z.object({
   title: z.string().min(1, 'Title is required').max(64,"Title is to long").optional(),
   description: z.string().max(512, "Description is to long").optional(),
-  status: z.nativeEnum(Status).optional(), 
+  status: z.nativeEnum(Status).optional(),
+  priority: z.nativeEnum(Priority).optional(), 
   expiresAt: z.string().datetime().optional(),
   tags: z.array(z.string()).optional(),
-  reminder: z.string().datetime().optional(),
+  remindAt: z.string().datetime().optional(),
 });
 
 export const todoIdValSchema = z.object({

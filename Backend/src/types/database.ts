@@ -1,12 +1,13 @@
-import { Status } from '@prisma/client';
+import { Status, Priority } from '@prisma/client';
 
 export interface TodoUpdateDbData {
   title?: string;
   description?: string | null;
   status?: Status; 
+  priority?: Priority;
   expiresAt?: Date | null;
   tags?: string[];
-  reminder?: Date | null;
+  remindAt?: Date | null;
 }
 
 
