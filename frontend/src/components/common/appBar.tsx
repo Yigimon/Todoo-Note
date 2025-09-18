@@ -11,6 +11,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
+import SideDrawer from './SideDrawer';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import MailIcon from '@mui/icons-material/Mail';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -57,6 +58,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function PrimarySearchAppBar() {
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
     React.useState<null | HTMLElement>(null);
@@ -155,6 +157,12 @@ export default function PrimarySearchAppBar() {
     </Menu>
   );
 
+  const handleDrawerAction = (action: string) => {
+    // Hier kann eine Callback-Prop oder ein globaler Handler integriert werden
+    console.log('Drawer action:', action);
+    // Optional: window.dispatchEvent(new CustomEvent('drawerAction', { detail: action }));
+  };
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -165,6 +173,7 @@ export default function PrimarySearchAppBar() {
             color="inherit"
             aria-label="open drawer"
             sx={{ mr: 40, ml: 1 }}
+            onClick={() => setDrawerOpen(true)}
           >
             <MenuIcon />
           </IconButton>
@@ -227,8 +236,16 @@ export default function PrimarySearchAppBar() {
           </Box>
         </Toolbar>
       </AppBar>
+      <SideDrawer 
+        open={drawerOpen} 
+        onClose={() => setDrawerOpen(false)}
+        onNavigate={handleDrawerAction}
+      />
       {renderMobileMenu}
       {renderMenu}
     </Box>
+    
   );
 }
+
+

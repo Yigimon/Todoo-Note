@@ -2,8 +2,9 @@ import * as React from 'react';
 import { Container, Typography, Box } from '@mui/material';
 import StatusFilter from '../components/todos/StatusFilter';
 import TodoList from '../components/todos/TodoList';
-import SideDrawer from '../components/common/SideDrawer';
+
 import CreateTodoPopUp from '../components/common/CreateTodoPopUp';
+import NamedTopSection from '../components/common/todosplittedNames';
 
 export default function MainTodos() {
   const [selectedStatus, setSelectedStatus] = React.useState<string>('ALL');
@@ -88,15 +89,8 @@ export default function MainTodos() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-        <SideDrawer onNavigate={handleDrawerAction} />
-      </Box>
       
-      <StatusFilter 
-        selectedStatus={selectedStatus}
-        onStatusChange={handleStatusChange}
-      />
-      
+      <NamedTopSection />
       <TodoList 
         filterStatus={selectedStatus === 'ALL' ? undefined : selectedStatus}
         refreshTrigger={refreshTrigger}

@@ -1,12 +1,14 @@
 import * as React from 'react';
-import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
-import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
+import Tooltip from '@mui/material/Tooltip';
+import SortTodos from './SortTodos';
 import type { Todo } from '../../services/todoServices';
 import { fetchAllTodosAxios } from '../../services/todoServices';
 
@@ -66,9 +68,16 @@ export default function KanbanTransferList({ filterStatus, refreshTrigger }: Tod
     // TODO: Backend-Update (z.B. per Axios PUT/POST)
   };
 
-  // Custom List für eine Status-Spalte
-  const customList = (items: readonly Todo[], status: string, checkedItems: readonly Todo[], moveTo: (from: Todo[], toStatus: string) => void) => (
-    <Paper sx={{ width: 320, height: 400, overflow: 'auto', p: 2 }}>
+  //  List für eine Status-Spalte
+  const customList = (items: readonly Todo[]) => (
+    <Paper elevation={3} sx={{ 
+      width: '100%', 
+      minWidth: 400,
+      height: 600, 
+      overflow: 'auto', 
+      p: 3,
+      mx: 1
+    }}>
       <List dense component="div" role="list">
         {items.map((todo) => {
           const labelId = `transfer-list-item-${todo.id}-label`;
@@ -108,75 +117,68 @@ export default function KanbanTransferList({ filterStatus, refreshTrigger }: Tod
                     </div>
                   </div>
                 }
-                secondary={todo.description || 'Keine Beschreibung vorhanden'}
+                secondary={
+                  <div>
+                    <div>{todo.description || 'Keine Beschreibung vorhanden'}</div>
+                    <div style={{ 
+                      fontSize: '12px', 
+                      color: '#666', 
+                      marginTop: '4px',
+                      display: 'flex',
+                      justifyContent: 'space-between'
+                    }}>
+                      <Tooltip title={`Erstellt am: ${new Date(todo.createdAt).toLocaleDateString('de-DE')}`}>
+                        <span>{new Date(todo.createdAt).toLocaleDateString('de-DE')}</span>
+                      </Tooltip>
+                      <Tooltip title={`Gültig bis: ${todo.expiresAt ? new Date(todo.expiresAt).toLocaleDateString('de-DE') : 'Kein Limit'}`}>
+                        <span>{todo.expiresAt ? new Date(todo.expiresAt).toLocaleDateString('de-DE') : 'Kein Limit'}</span>
+                      </Tooltip>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '8px',
+                        backgroundColor: todo.priority === 'URGENT' ? '#f44336' :
+                                       todo.priority === 'HIGH' ? '#ff9800' :
+                                       todo.priority === 'MEDIUM' ? '#2196f3' :
+                                       '#4caf50',
+                        color: 'white',
+                        fontSize: '12px'
+                      }}>
+                        {todo.priority}
+                      </span>
+                    </div>
+                  </div>
+                }
               />
             </ListItemButton>
           );
         })}
       </List>
-      <Grid container direction="column" sx={{ alignItems: 'center', mt: 2 }}>
-        {status === 'NEW' && (
-          <Button
-            sx={{ my: 0.5 }}
-            variant="outlined"
-            size="small"
-            onClick={() => moveTo(newChecked, 'OPEN')}
-            disabled={newChecked.length === 0}
-            aria-label="move selected to OPEN"
-          >
-            &gt; OPEN
-          </Button>
-        )}
-        {status === 'OPEN' && (
-          <>
-            <Button
-              sx={{ my: 0.5 }}
-              variant="outlined"
-              size="small"
-              onClick={() => moveTo(openChecked, 'NEW')}
-              disabled={openChecked.length === 0}
-              aria-label="move selected to NEW"
-            >
-              &lt; NEW
-            </Button>
-            <Button
-              sx={{ my: 0.5 }}
-              variant="outlined"
-              size="small"
-              onClick={() => moveTo(openChecked, 'COMPLETED')}
-              disabled={openChecked.length === 0}
-              aria-label="move selected to COMPLETED"
-            >
-              &gt; COMPLETED
-            </Button>
-          </>
-        )}
-        {status === 'COMPLETED' && (
-          <Button
-            sx={{ my: 0.5 }}
-            variant="outlined"
-            size="small"
-            onClick={() => moveTo(completedChecked, 'OPEN')}
-            disabled={completedChecked.length === 0}
-            aria-label="move selected to OPEN"
-          >
-            &lt; OPEN
-          </Button>
-        )}
-      </Grid>
     </Paper>
   );
 
+  const createTodoColumn = (todos: readonly Todo[], status: string, checkedTodos: readonly Todo[]) => (
+    <Box sx={{ 
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'stretch'
+    }}>
+      {customList(todos)}
+      <SortTodos status={status} checkedTodos={checkedTodos} onMoveTodos={moveChecked} />
+    </Box>
+  );
+
   return (
-    <Grid
-      container
-      spacing={2}
-      sx={{ justifyContent: 'center', alignItems: 'center' }}
-    >
-      <Grid item>{customList(newTodos, 'NEW', newChecked, moveChecked)}</Grid>
-      <Grid item>{customList(openTodos, 'OPEN', openChecked, moveChecked)}</Grid>
-      <Grid item>{customList(completedTodos, 'COMPLETED', completedChecked, moveChecked)}</Grid>
-    </Grid>
+    <Box sx={{ width: '100%' }}>
+      <Stack direction="row" spacing={2} sx={{ 
+        justifyContent: 'stretch',
+        alignItems: 'flex-start'
+      }}>
+        {createTodoColumn(newTodos, 'NEW', newChecked)}
+        {createTodoColumn(openTodos, 'OPEN', openChecked)}
+        {createTodoColumn(completedTodos, 'COMPLETED', completedChecked)}
+      </Stack>
+    </Box>
   );
 }
 
