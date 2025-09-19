@@ -11,6 +11,7 @@ import Tooltip from '@mui/material/Tooltip';
 import SortTodos from './SortTodos';
 import type { Todo } from '../../services/todoServices';
 import { fetchAllTodosAxios } from '../../services/todoServices';
+import { Chip } from '@mui/material';
 
 
 function notTodos(a: readonly Todo[], b: readonly Todo[]) {
@@ -70,11 +71,11 @@ export default function KanbanTransferList({ filterStatus, refreshTrigger }: Tod
 
   //  List für eine Status-Spalte
   const customList = (items: readonly Todo[]) => (
-    <Paper elevation={3} sx={{ 
+    <Paper elevation={10} sx={{ 
       width: '100%', 
-      minWidth: 400,
-      height: 600, 
-      overflow: 'auto', 
+      minWidth: '100%',
+      height: 650,
+      overflow: 'auto',
       p: 3,
       mx: 1
     }}>
@@ -105,10 +106,10 @@ export default function KanbanTransferList({ filterStatus, refreshTrigger }: Tod
                       <span style={{
                         padding: '2px 8px',
                         borderRadius: '8px',
-                        fontSize: '12px',
-                        backgroundColor: todo.status === 'COMPLETED' ? '#4caf50' :
-                                        todo.status === 'OPEN' ? '#2196f3' :
-                                        todo.status === 'NEW' ? '#ff9800' : '#ccc',
+                        fontSize: '10px',
+                        // backgroundColor: todo.status === 'COMPLETED' ? '#4caf50' :
+                        //                 todo.status === 'OPEN' ? '#2196f3' :
+                        //                 todo.status === 'NEW' ? '#ff9800' : '#ccc',
                         color: 'white',
                         textAlign: 'right'
                       }}>
@@ -125,26 +126,36 @@ export default function KanbanTransferList({ filterStatus, refreshTrigger }: Tod
                       color: '#666', 
                       marginTop: '4px',
                       display: 'flex',
-                      justifyContent: 'space-between'
+                      justifyContent: 'stretch'
                     }}>
-                      <Tooltip title={`Erstellt am: ${new Date(todo.createdAt).toLocaleDateString('de-DE')}`}>
-                        <span>{new Date(todo.createdAt).toLocaleDateString('de-DE')}</span>
-                      </Tooltip>
-                      <Tooltip title={`Gültig bis: ${todo.expiresAt ? new Date(todo.expiresAt).toLocaleDateString('de-DE') : 'Kein Limit'}`}>
-                        <span>{todo.expiresAt ? new Date(todo.expiresAt).toLocaleDateString('de-DE') : 'Kein Limit'}</span>
-                      </Tooltip>
-                      <span style={{
-                        padding: '2px 8px',
-                        borderRadius: '8px',
-                        backgroundColor: todo.priority === 'URGENT' ? '#f44336' :
-                                       todo.priority === 'HIGH' ? '#ff9800' :
-                                       todo.priority === 'MEDIUM' ? '#2196f3' :
-                                       '#4caf50',
-                        color: 'white',
-                        fontSize: '12px'
-                      }}>
-                        {todo.priority}
-                      </span>
+                        {/* Erstellungsdatum, Fälligkeitsdatum, Priorität */}
+                        <Tooltip title={`Created at: ${new Date(todo.createdAt).toLocaleDateString('de-DE') || 'Not assigned'}`}>
+                        <Chip label={new Date(todo.createdAt).toLocaleDateString('de-DE') || 'Not assigned'} />
+                        </Tooltip>
+                        <Tooltip title={`Valid till: ${todo.expiresAt ? new Date(todo.expiresAt).toLocaleDateString('de-DE') : 'no expiration'}`}>
+                        <Chip label={todo.expiresAt ? new Date(todo.expiresAt).toLocaleDateString('de-DE') : 'no expiration'} />
+                        </Tooltip>
+                        <Tooltip title={`Priority: ${todo.priority}`}>
+                        <Chip
+                          label={todo.priority}
+                          style={{
+                          backgroundColor:
+                            todo.priority === 'LOW'
+                            ? '#8bc34a'
+                            : todo.priority === 'MEDIUM'
+                            ? '#ffeb3b'
+                            : todo.priority === 'HIGH'
+                            ? '#ff9800'
+                            : todo.priority === 'URGENT'
+                            ? '#f44336'
+                            : '#e0e0e0',
+                          color:
+                            todo.priority === 'MEDIUM' ? '#333' : '#fff',
+                          fontWeight: 600
+                          }}
+                        />
+                        </Tooltip>
+                      
                     </div>
                   </div>
                 }

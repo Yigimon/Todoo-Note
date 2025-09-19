@@ -1,72 +1,29 @@
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
 import Paper from '@mui/material/Paper';
-import Box from '@mui/material/Box';
 
 export default function NamedTopSection() {
-  return (
-    <Box sx={{ 
-      display: 'flex',
-      justifyContent: 'center',
-      mb: 3,
-      px: 1
-    }}>
-      <Stack direction="row" spacing={2} sx={{ 
+return (
+    <Stack
+      direction={{ xs: 'column', sm: 'row' }}
+      spacing={{ xs: 1, sm: 2, md: 4 }}
+      sx={{ width: '100%', mb: 3 }}
+    >
+      
+      <Paper elevation={10} sx={{ 
+        flex: 1,
+        height: 80,
+        p: 3,
+        display: 'flex',
         alignItems: 'center',
-        width: '100%',
-        maxWidth: '1200px' // Gleiche maximale Breite wie die untere Sektion
+        justifyContent: 'center'
       }}>
-        {/* NEW Section */}
-        <Paper elevation={3} sx={{ 
-          flex: 1, 
-          minWidth: 200,
-          height: 80,
-          p: 3,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <Chip
-            label="NEW"
-            variant="outlined"
-            sx={{ minWidth: 120 }}
-          />
-        </Paper>
-
-        {/* OPEN Section */}
-        <Paper elevation={3} sx={{ 
-          flex: 1, 
-          minWidth: 150,
-          height: 80,
-          p: 3,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <Chip
-            label="OPEN"
-            variant="outlined"
-            sx={{ minWidth: 120 }}
-          />
-        </Paper>
-
-        {/* COMPLETED Section */}
-        <Paper elevation={3} sx={{ 
-          flex: 1, 
-          minWidth: 200,
-          height: 80,
-          p: 3,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <Chip
-            label="COMPLETED"
-            variant="outlined"
-            sx={{ minWidth: 120 }}
-          />
-        </Paper>
-      </Stack>
-    </Box>
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'center',width: "100%" }}>
+            <Chip label="NEW" /> 
+            <Chip label="OPEN" />
+            <Chip label="COMPLETED" />
+        </Stack>
+      </Paper>
+    </Stack>
   );
 }

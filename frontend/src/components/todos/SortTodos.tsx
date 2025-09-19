@@ -26,17 +26,19 @@ export default function SortTodos({ status, checkedTodos, onMoveTodos }: SortTod
   };
 
   return (
-    <Paper elevation={3} sx={{ 
-      width: '100%', 
-      minWidth: 400,
-      height: 80,
-      p: 3,
-      mx: 1,
-      mt: 3, // Mehr Abstand nach oben
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
+    <Stack
+      direction={{ xs: 'column', sm: 'row' }}
+      spacing={{ xs: 1, sm: 2, md: 4 }}
+      sx={{ mt: 3, mx: 1, width: '100%' }}
+    >
+      <Paper elevation={24} sx={{ 
+        flex: 1,
+        height: 80,
+        p: 3,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
         <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
           {status === 'NEW' && (
             <Chip
@@ -85,5 +87,6 @@ export default function SortTodos({ status, checkedTodos, onMoveTodos }: SortTod
           )}
         </Stack>
       </Paper>
+    </Stack>
   );
 }

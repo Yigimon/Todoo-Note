@@ -11,43 +11,6 @@ export default function MainTodos() {
   const [createTodoOpen, setCreateTodoOpen] = React.useState(false);
   const [refreshTrigger, setRefreshTrigger] = React.useState(0);
 
-  const handleStatusChange = (status: string) => {
-    setSelectedStatus(status);
-  };
-
-  const handleDrawerAction = (action: string) => {
-    switch (action) {
-      case 'create-todo':
-        setCreateTodoOpen(true);
-        break;
-      case 'edit-todo':
-        // TODO: Öffne Edit-Modal
-        console.log('Edit Todo Modal');
-        break;
-      case 'search':
-        // TODO: Öffne Search-Modal
-        console.log('Search Modal');
-        break;
-      case 'filter':
-        // TODO: Öffne Advanced Filter Modal
-        console.log('Filter Modal');
-        break;
-      case 'delete-todo':
-        // TODO: Öffne Delete-Modal/Confirmation
-        console.log('Delete Todo Modal');
-        break;
-      case 'settings':
-        // TODO: Öffne Settings-Modal
-        console.log('Settings Modal');
-        break;
-      case 'about':
-        // TODO: Öffne About-Modal
-        console.log('About Modal');
-        break;
-      default:
-        console.log('Unknown action:', action);
-    }
-  };
 
   const handleCreateTodo = async (todoData: any) => {
     try {
@@ -88,14 +51,13 @@ export default function MainTodos() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="100%" sx={{ py: 1 }}>
       
       <NamedTopSection />
       <TodoList 
         filterStatus={selectedStatus === 'ALL' ? undefined : selectedStatus}
         refreshTrigger={refreshTrigger}
       />
-
       <CreateTodoPopUp 
         open={createTodoOpen}
         onClose={() => setCreateTodoOpen(false)}
