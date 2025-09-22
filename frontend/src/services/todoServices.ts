@@ -37,6 +37,7 @@ export type Todo = {
 
 export async function fetchAllTodosAxios() {
   const response = await axios.get('http://localhost:3001/api/todos');
-  return response.data;
+  // Backend sendet { success: true, data: [...], count: n }
+  return response.data.data || [];
 }
 
