@@ -40,25 +40,3 @@ return (
     
   );
 }
-
-// <Box>
-      
-    //   <Paper elevation={10} sx={{ 
-    //     flex: 1,
-    //     height: 40,
-    //     p: 1,
-    //     display: 'flex',
-    //     alignItems: 'center',
-    //     justifyContent: 'center'
-    //   }}>
-    //     <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-           
-    //         <Chip 
-    //         label="NEW"
-    //         sx={{ minWidth: 200 }}
-    //         /> 
-    //         <Chip label="OPEN" />
-    //         <Chip label="COMPLETED" />
-    //     </Stack>
-    //   </Paper>
-    // </Box>

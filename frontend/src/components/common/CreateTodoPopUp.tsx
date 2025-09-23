@@ -78,7 +78,7 @@ export default function CreateTodoPopUp({ open, onClose, onSubmit }: CreateTodoM
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
           <TextField
-            label="Titel *"
+            label="Titel"
             value={formData.title}
             onChange={handleChange('title')}
             fullWidth
@@ -126,8 +126,8 @@ export default function CreateTodoPopUp({ open, onClose, onSubmit }: CreateTodoM
             type="date"
             value={formData.expiresAt}
             onChange={handleChange('expiresAt')}
-            InputLabelProps={{
-              shrink: true,
+            slotProps={{
+              inputLabel: { shrink: true },
             }}
             fullWidth
           />
@@ -137,8 +137,8 @@ export default function CreateTodoPopUp({ open, onClose, onSubmit }: CreateTodoM
             type="datetime-local"
             value={formData.remindAt}
             onChange={handleChange('remindAt')}
-            InputLabelProps={{
-              shrink: true,
+            slotProps={{
+              inputLabel: { shrink: true},
             }}
             fullWidth
           />

@@ -9,11 +9,8 @@ import Checkbox from '@mui/material/Checkbox';
 import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
 import { Chip } from '@mui/material';
-import SortTodos from './SortTodos';
-import TodoFilter from './TodoFilter';
+import SortTodos from '../common/sortTodos';
 import type { Todo } from '../../services/todoServices';
-import { fetchAllTodosAxios } from '../../services/todoServices';
-import TodoFilterService, {type  TodoQueryParams } from '../../services/filterServices';
 
 // Helper functions
 const getPriorityColor = (priority: string): string => {
@@ -37,57 +34,12 @@ function notTodos(a: readonly Todo[], b: readonly Todo[]) {
 
 
 interface TodoListProps {
-  filterStatus?: string;
-  refreshTrigger?: number;
+  todos: Todo[];
+  loading?: boolean;
 }
 
-export default function KanbanTransferList({ filterStatus, refreshTrigger }: TodoListProps) {
-  const [todos, setTodos] = React.useState<Todo[]>([]);
+export default function KanbanTransferList({ todos, loading = false }: TodoListProps) {
   const [checked, setChecked] = React.useState<readonly Todo[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  
-  // Filter State
-  const [filters, setFilters] = React.useState<TodoQueryParams>({
-    sortBy: 'createdAt',
-    sortOrder: 'desc'
-  });
-
-  // Todos laden mit Filtern
-  React.useEffect(() => {
-    const loadTodos = async () => {
-      setLoading(true);
-      try {
-        // Wenn filterStatus prop gesetzt ist, überschreibe Filter
-        const queryFilters = filterStatus 
-          ? { ...filters, status: filterStatus as any }
-          : filters;
-
-        const filteredTodos = await TodoFilterService.fetchFilteredTodos(queryFilters);
-        setTodos(filteredTodos || []);
-      } catch (error) {
-        console.error('Error loading filtered todos:', error);
-        // Fallback zu lokalen Daten
-        const fallbackTodos = await fetchAllTodosAxios();
-        setTodos(fallbackTodos || []);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTodos();
-  }, [filters, filterStatus, refreshTrigger]);
-
-  // Filter Handler
-  const handleFiltersChange = (newFilters: TodoQueryParams) => {
-    setFilters(newFilters);
-  };
-
-  const handleClearFilters = () => {
-    setFilters({
-      sortBy: 'createdAt',
-      sortOrder: 'desc'
-    });
-  };
 
   // Status-Listen (gefilterte Todos nach Status aufteilen)
   const safeTodos = Array.isArray(todos) ? todos : [];
@@ -119,9 +71,10 @@ export default function KanbanTransferList({ filterStatus, refreshTrigger }: Tod
 const customList = (items: readonly Todo[]) => (
   <Paper elevation={3} sx={{ 
     width: '100%',
-   height: 500,
+    height: '100vh',
     overflow: 'auto',
     p: 3,
+    backgroundColor : 'rgba(114, 111, 111, 0.6)'
   
   }}>
     <List dense component="div" role="list">
@@ -139,7 +92,7 @@ const customList = (items: readonly Todo[]) => (
                 checked={checked.some(t => t.id === todo.id)}
                 tabIndex={-1}
                 disableRipple
-                inputProps={{ 'aria-labelledby': labelId }}
+                slotProps={{ 'input': labelId }}
               />
             </ListItemIcon>
             <ListItemText
@@ -158,6 +111,7 @@ const customList = (items: readonly Todo[]) => (
                     marginTop: '8px',
                     display: 'flex',
                     gap: '8px',
+                    flexWrap: 'wrap'
                    
                   }}>
                     {/* Erstellungsdatum, Fälligkeitsdatum, Priorität */}
@@ -208,7 +162,8 @@ const createTodoColumn = (todos: readonly Todo[], status: string, checkedTodos: 
     minWidth: 0,
     display: 'flex',
     flexDirection: 'column-reverse',
-    alignItems: 'stretch'
+    alignItems: 'stretch',
+    height: '100%',
   }}>
     {customList(todos)}
     <SortTodos status={status} checkedTodos={checkedTodos} onMoveTodos={moveChecked} />
@@ -216,27 +171,23 @@ const createTodoColumn = (todos: readonly Todo[], status: string, checkedTodos: 
 );
 
 return (
-  <Box sx={{ width: '100%' }}>
-    {/* Filter Component */}
-    <TodoFilter
-      filters={filters}
-      onFiltersChange={handleFiltersChange}
-      onClearFilters={handleClearFilters}
-    />
-
+  <Box sx={{ width: '100%'}}>
     {loading ? (
       <Box sx={{ textAlign: 'center', py: 4 }}>
         Lade Todos...
       </Box>
+      
     ) : (
       <Stack direction="row" spacing={2} sx={{ 
         justifyContent: 'space-between',
         alignItems: 'stretch',
-        width: '100%'
+        width: '100%',
+        
       }}>
         {createTodoColumn(newTodos, 'NEW', getCheckedTodosForStatus(newTodos, checked))}
         {createTodoColumn(openTodos, 'OPEN', getCheckedTodosForStatus(openTodos, checked))}
         {createTodoColumn(completedTodos, 'COMPLETED', getCheckedTodosForStatus(completedTodos, checked))}
+       
       </Stack>
     )}
   </Box>
