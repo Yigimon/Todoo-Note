@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import List from '@mui/material/List';
@@ -9,8 +9,10 @@ import Checkbox from '@mui/material/Checkbox';
 import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
 import { Chip } from '@mui/material';
-import SortTodos from '../common/sortTodos';
+import TodoStatusButtons from '../common/TodoStatusButtons';
 import type { Todo } from '../../services/todoServices';
+import { useTodoSelection } from '../../hooks/useTodoSelection';
+import { useTodoStatus } from '../../hooks/useTodoStatus';
 
 // Helper functions
 const getPriorityColor = (priority: string): string => {
@@ -23,50 +25,19 @@ const getPriorityColor = (priority: string): string => {
   }
 };
 
-const getCheckedTodosForStatus = (todos: readonly Todo[], checked: readonly Todo[]): readonly Todo[] =>
-  todos.filter(todo => checked.some(c => c.id === todo.id));
-
-
-function notTodos(a: readonly Todo[], b: readonly Todo[]) {
-  return a.filter((todo) => !b.some(t => t.id === todo.id));
-}
-
-
-
 interface TodoListProps {
   todos: Todo[];
   loading?: boolean;
 }
 
 export default function KanbanTransferList({ todos, loading = false }: TodoListProps) {
-  const [checked, setChecked] = React.useState<readonly Todo[]>([]);
+  const { checked, handleToggle, getCheckedTodosForStatus } = useTodoSelection();
+  const { newTodos, openTodos, completedTodos } = useTodoStatus(todos);
 
-  // Status-Listen (gefilterte Todos nach Status aufteilen)
-  const safeTodos = Array.isArray(todos) ? todos : [];
-  const newTodos = safeTodos.filter(todo => todo.status === 'NEW');
-  const openTodos = safeTodos.filter(todo => todo.status === 'OPEN');
-  const completedTodos = safeTodos.filter(todo => todo.status === 'COMPLETED');
-
-  // Toggle Checkbox
-  const handleToggle = (todo: Todo) => () => {
-    const currentIndex = checked.findIndex(t => t.id === todo.id);
-    const newChecked = [...checked];
-    if (currentIndex === -1) {
-      newChecked.push(todo);
-    } else {
-      newChecked.splice(currentIndex, 1);
-    }
-    setChecked(newChecked);
-  };
-
-  // Move Todos zwischen Status
+  // Move Todos zwischen Status (vereinfacht)
   const moveChecked = (from: Todo[], toStatus: string) => {
-    const validStatus = toStatus as 'NEW' | 'OPEN' | 'COMPLETED';
-    setTodos(prev => prev.map(todo =>
-      from.some(t => t.id === todo.id) ? { ...todo, status: validStatus } : todo
-    ));
-    setChecked(notTodos(checked, from));
-    // TODO: Backend-Update (z.B. per Axios PUT/POST)
+    // TODO: Implement proper state update and backend call
+    console.log('Moving todos:', from, 'to status:', toStatus);
   };// List für eine Status-Spalte
 const customList = (items: readonly Todo[]) => (
   <Paper elevation={3} sx={{ 
@@ -166,7 +137,7 @@ const createTodoColumn = (todos: readonly Todo[], status: string, checkedTodos: 
     height: '100%',
   }}>
     {customList(todos)}
-    <SortTodos status={status} checkedTodos={checkedTodos} onMoveTodos={moveChecked} />
+    <TodoStatusButtons status={status} checkedTodos={checkedTodos} onMoveTodos={moveChecked} />
   </Box>
 );
 
@@ -184,9 +155,9 @@ return (
         width: '100%',
         
       }}>
-        {createTodoColumn(newTodos, 'NEW', getCheckedTodosForStatus(newTodos, checked))}
-        {createTodoColumn(openTodos, 'OPEN', getCheckedTodosForStatus(openTodos, checked))}
-        {createTodoColumn(completedTodos, 'COMPLETED', getCheckedTodosForStatus(completedTodos, checked))}
+        {createTodoColumn(newTodos, 'NEW', getCheckedTodosForStatus(newTodos))}
+        {createTodoColumn(openTodos, 'OPEN', getCheckedTodosForStatus(openTodos))}
+        {createTodoColumn(completedTodos, 'COMPLETED', getCheckedTodosForStatus(completedTodos))}
        
       </Stack>
     )}

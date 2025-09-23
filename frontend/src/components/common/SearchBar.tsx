@@ -5,7 +5,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import SearchIcon from '@mui/icons-material/Search';
 import CancelIcon from '@mui/icons-material/Cancel';
 import IconButton from '@mui/material/IconButton';
-import { type TodoQueryParams } from '../../services/filterServices';
+import { type TodoQueryParams } from '../../services/todoFilterService';
 
 interface SearchBarProps {
   filters: TodoQueryParams;

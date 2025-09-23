@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -10,62 +10,26 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useTodoForm, type NewTodoData } from '../../hooks/useTodoForm';
 
 interface CreateTodoModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit?: (todo: NewTodoData) => void;
+  onSubmit?: (todo: NewTodoData) => Promise<void>;
+  loading?: boolean;
+  error?: string | null;
 }
 
-interface NewTodoData {
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  expiresAt?: string;
-  remindAt?: string;
-  tags?: string[];
-}
-
-export default function CreateTodoPopUp({ open, onClose, onSubmit }: CreateTodoModalProps) {
-  const [formData, setFormData] = React.useState<NewTodoData>({
-    title: '',
-    description: '',
-    status: 'NEW',
-    priority: 'MEDIUM',
-    expiresAt: '',
-    remindAt: '',
-    tags: []
-  });
-
-  const handleChange = (field: keyof NewTodoData) => (
-    event: React.ChangeEvent<HTMLInputElement> | { target: { value: unknown } }
-  ) => {
-    setFormData({
-      ...formData,
-      [field]: event.target.value
-    });
-  };
-
-  const handleSubmit = () => {
-    if (formData.title.trim()) {
-      onSubmit?.(formData);
-      handleClose();
-    }
-  };
-
-  const handleClose = () => {
-    setFormData({
-      title: '',
-      description: '',
-      status: 'NEW',
-      priority: 'MEDIUM',
-      expiresAt: '',
-      remindAt: '',
-      tags: []
-    });
-    onClose();
-  };
+export default function CreateTodoPopUp({ 
+  open, 
+  onClose, 
+  onSubmit, 
+  loading = false, 
+  error = null 
+}: CreateTodoModalProps) {
+  const { formData, handleChange, handleSubmit, handleClose } = useTodoForm(onSubmit, onClose);
 
   return (
     <Dialog 
@@ -76,6 +40,12 @@ export default function CreateTodoPopUp({ open, onClose, onSubmit }: CreateTodoM
     >
       <DialogTitle>Neues Todo erstellen</DialogTitle>
       <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
           <TextField
             label="Titel"
@@ -83,6 +53,7 @@ export default function CreateTodoPopUp({ open, onClose, onSubmit }: CreateTodoM
             onChange={handleChange('title')}
             fullWidth
             required
+            disabled={loading}
           />
           
           <TextField
@@ -92,9 +63,10 @@ export default function CreateTodoPopUp({ open, onClose, onSubmit }: CreateTodoM
             multiline
             rows={3}
             fullWidth
+            disabled={loading}
           />
 
-          <FormControl fullWidth>
+          <FormControl fullWidth disabled={loading}>
             <InputLabel>Status</InputLabel>
             <Select
               value={formData.status}
@@ -107,7 +79,7 @@ export default function CreateTodoPopUp({ open, onClose, onSubmit }: CreateTodoM
             </Select>
           </FormControl>
 
-          <FormControl fullWidth>
+          <FormControl fullWidth disabled={loading}>
             <InputLabel>Priorität</InputLabel>
             <Select
               value={formData.priority}
@@ -130,6 +102,7 @@ export default function CreateTodoPopUp({ open, onClose, onSubmit }: CreateTodoM
               inputLabel: { shrink: true },
             }}
             fullWidth
+            disabled={loading}
           />
 
           <TextField
@@ -141,17 +114,21 @@ export default function CreateTodoPopUp({ open, onClose, onSubmit }: CreateTodoM
               inputLabel: { shrink: true},
             }}
             fullWidth
+            disabled={loading}
           />
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Abbrechen</Button>
+        <Button onClick={handleClose} disabled={loading}>
+          Abbrechen
+        </Button>
         <Button 
           onClick={handleSubmit} 
           variant="contained"
-          disabled={!formData.title.trim()}
+          disabled={!formData.title.trim() || loading}
+          startIcon={loading ? <CircularProgress size={20} /> : undefined}
         >
-          Erstellen
+          {loading ? 'Wird erstellt...' : 'Erstellen'}
         </Button>
       </DialogActions>
     </Dialog>

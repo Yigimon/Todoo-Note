@@ -40,8 +40,9 @@ export class TodoController {
       const newTodoDataForDb = {
         title: req.body.title,
         description: req.body.description || null,
-        userId: req.body.userId, 
+        userId: req.body.userId || 1, // Default user ID falls nicht angegeben
         priority: req.body.priority || 'MEDIUM',
+        status: req.body.status || 'NEW', // Status hinzufügen
         expiresAt: req.body.expiresAt ? new Date(req.body.expiresAt) : null,
         tags: req.body.tags || [],
         remindAt: req.body.remindAt ? new Date(req.body.remindAt) : null,

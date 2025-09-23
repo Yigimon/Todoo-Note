@@ -10,7 +10,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
-import { type TodoQueryParams } from '../../services/filterServices';
+import { type TodoQueryParams } from '../../services/todoFilterService';
 
 interface TodoFilterProps {
   filters: TodoQueryParams;
