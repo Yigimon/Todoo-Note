@@ -13,6 +13,7 @@ import TodoStatusButtons from '../common/TodoStatusButtons';
 import type { Todo } from '../../services/todoServices';
 import { useTodoSelection } from '../../hooks/useTodoSelection';
 import { useTodoStatus } from '../../hooks/useTodoStatus';
+import blurStyling from '../../services/stylingService';
 
 // Helper functions
 const getPriorityColor = (priority: string): string => {
@@ -28,16 +29,21 @@ const getPriorityColor = (priority: string): string => {
 interface TodoListProps {
   todos: Todo[];
   loading?: boolean;
+  onUpdateTodo: (updatedTodo: Todo) => void;
 }
 
-export default function KanbanTransferList({ todos, loading = false }: TodoListProps) {
+export default function KanbanTransferList({ todos, loading = false, onUpdateTodo }: TodoListProps) {
   const { checked, handleToggle, getCheckedTodosForStatus } = useTodoSelection();
   const { newTodos, openTodos, completedTodos } = useTodoStatus(todos);
 
-  // Move Todos zwischen Status (vereinfacht)
+  // Move Todos zwischen Status
   const moveChecked = (from: Todo[], toStatus: string) => {
-    // TODO: Implement proper state update and backend call
-    console.log('Moving todos:', from, 'to status:', toStatus);
+    const validStatus = toStatus as 'NEW' | 'OPEN' | 'COMPLETED';
+    from.forEach(todo => {
+      const updatedTodo = { ...todo, status: validStatus };
+      onUpdateTodo(updatedTodo);
+      // TODO: Backend-Update (z.B. per Axios PUT/POST)
+    });
   };// List für eine Status-Spalte
 const customList = (items: readonly Todo[]) => (
   <Paper elevation={3} sx={{ 
@@ -45,7 +51,7 @@ const customList = (items: readonly Todo[]) => (
     height: '100vh',
     overflow: 'auto',
     p: 3,
-    backgroundColor : 'rgba(114, 111, 111, 0.6)'
+    ...blurStyling
   
   }}>
     <List dense component="div" role="list">
@@ -91,6 +97,7 @@ const customList = (items: readonly Todo[]) => (
                         label={new Date(todo.createdAt).toLocaleDateString('de-DE')} 
                         size="small"
                         variant="outlined"
+                        sx={blurStyling}
                       />
                     </Tooltip>
                     
@@ -99,6 +106,7 @@ const customList = (items: readonly Todo[]) => (
                         label={todo.expiresAt ? new Date(todo.expiresAt).toLocaleDateString('de-DE') : 'Kein Limit'} 
                         size="small"
                         variant="outlined"
+                        sx={blurStyling}
                       />
                     </Tooltip>
                     
@@ -107,6 +115,7 @@ const customList = (items: readonly Todo[]) => (
                         label={todo.priority}
                         size="small"
                         sx={{
+                          ...blurStyling,
                           backgroundColor: getPriorityColor(todo.priority),
                           color: 'white',
                           fontWeight: 'bold',

@@ -1,7 +1,7 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import MainTodos from './pages/MainTodos';
-import PrimarySearchAppBar from './components/common/NavigationBar';
-import peakpx from './assets/peakpx.jpg';
+import ButtonAppBar from './components/common/NavigationBar';
+import a from './assets/a.jpg';
 import { Box } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
@@ -15,8 +15,8 @@ function App() {
     
      <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <PrimarySearchAppBar />
-      <Box sx={{ backgroundImage: `url(${peakpx})`, backgroundSize: 'cover', minHeight: '100vh' }}>
+      <ButtonAppBar />
+      <Box sx={{ backgroundImage: `url(${a})`, backgroundSize: 'cover', minHeight: '100vh' }}>
         <MainTodos />
       </Box>
       </ThemeProvider>

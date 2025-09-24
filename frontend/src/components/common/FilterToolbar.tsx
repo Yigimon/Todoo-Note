@@ -9,6 +9,7 @@ import Button from '@mui/material/Button';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { type TodoQueryParams } from '../../services/todoFilterService';
 import { useFilterCalculations } from '../../hooks/useFilterCalculations';
+import blurStyling from '../../services/stylingService';
 
 interface FilterToolbarProps {
   filters: TodoQueryParams;
@@ -51,6 +52,7 @@ export default function FilterToolbar({
           variant="outlined"
           onClick={onClearFilters}
           startIcon={<CancelIcon />}
+          sx = {{ ...blurStyling }}
         >
           Filter löschen
         </Button>

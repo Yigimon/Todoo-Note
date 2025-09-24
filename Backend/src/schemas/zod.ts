@@ -62,9 +62,12 @@ export const todoFilterQuerySchema = z.object({
   // Tag Filter
   hasTag: z.string().optional(),                      // Hat bestimmten Tag
   tags: z.string().optional(),                        // Komma-getrennte Tags: "work,urgent"
+
+  //
+  priority: z.nativeEnum(Priority).optional(),
   
   // Sorting
-  sortBy: z.enum(['createdAt', 'title', 'status', 'expiresAt']).default('createdAt').optional(),
+  sortBy: z.enum(['createdAt', 'title', 'status', 'expiresAt', 'priority']).default('createdAt').optional(),
   sortOrder: z.enum(['asc', 'desc']).default('desc').optional(),
 });
 

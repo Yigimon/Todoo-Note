@@ -31,6 +31,7 @@ return (
           fontWeight: 'bold',
           fontSize: '14px',
           height: 40
+          
         }}
       />
     ))}

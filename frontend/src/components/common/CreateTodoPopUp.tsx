@@ -13,6 +13,7 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useTodoForm, type NewTodoData } from '../../hooks/useTodoForm';
+import blurStyling from '../../services/stylingService';
 
 interface CreateTodoModalProps {
   open: boolean;
@@ -35,8 +36,10 @@ export default function CreateTodoPopUp({
     <Dialog 
       open={open} 
       onClose={handleClose}
-      maxWidth="sm"
+      maxWidth= 'sm'
       fullWidth
+      slotProps={{ paper: { sx: { ...blurStyling } } }}
+      
     >
       <DialogTitle>Neues Todo erstellen</DialogTitle>
       <DialogContent>

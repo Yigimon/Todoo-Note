@@ -1,4 +1,4 @@
-import { Status, type Todo } from "./todoServices";
+import { Priority, Status, type Todo } from "./todoServices";
 
 // API Query Interface 
 export type TodoQueryParams= {
@@ -12,10 +12,13 @@ export type TodoQueryParams= {
 
     // Date yyyy-mm-dd
     createdAt?: string;
-    expiresAt?: string; // Korrigiert: war expiredAt
+    expiresAt?: string;
+
+    //Prioroty
+    priority?: Priority;
 
     // Sort
-    sortBy?: 'title' | 'createdAt' | 'status' | 'expiresAt'; // Korrigiert: war expiredAt
+    sortBy?: 'title' | 'createdAt' | 'status' | 'expiresAt';
     sortOrder?: 'asc' | 'desc';
 }
 
@@ -57,8 +60,8 @@ export class TodoFilterService {
         return {
             // Expires today
             today: (): TodoQueryParams => ({
-                expiresAt: new Date().toISOString().split('T')[0], // Korrigiert
-                sortBy: 'expiresAt', // Korrigiert
+                expiresAt: new Date().toISOString().split('T')[0], 
+                sortBy: 'expiresAt',
                 sortOrder: 'asc'
             }),
 
@@ -80,8 +83,10 @@ export class TodoFilterService {
             completedTodos: (): TodoQueryParams => ({
                 status: Status.COMPLETED,
                 sortBy: 'createdAt',
-                sortOrder: 'desc' // Korrigiert: war asc
-            })
+                sortOrder: 'desc'
+            }),
+
+           
         };
     }
 }
@@ -95,7 +100,7 @@ export const useQueryParams = () => {
         // Alle möglichen Parameter durchgehen
         const paramKeys: (keyof TodoQueryParams)[] = [
             'title', 'description', 'search', 'status', 'userId',
-            'createdAt', 'expiresAt', 'sortBy', 'sortOrder' // Korrigiert: expiredAt → expiresAt
+            'createdAt', 'expiresAt', 'sortBy', 'sortOrder', 'priority'
         ];
 
         paramKeys.forEach(key => {

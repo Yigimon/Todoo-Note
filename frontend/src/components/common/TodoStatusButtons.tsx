@@ -4,6 +4,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DoneIcon from '@mui/icons-material/Done';
 import type { Todo } from '../../services/todoServices';
+import blurStyling from '../../services/stylingService';
 
 interface SortTodosProps {
   status: string;
@@ -33,7 +34,7 @@ export default function SortTodos({ status, checkedTodos, onMoveTodos }: SortTod
               deleteIcon={<ArrowForwardIcon />}
               onDelete={moveTodos('OPEN')}
               variant="outlined"
-              sx={{ minWidth: 200 }}
+              sx={{ ...blurStyling, minWidth: 200 }}
             />
           )}
           
@@ -46,7 +47,7 @@ export default function SortTodos({ status, checkedTodos, onMoveTodos }: SortTod
                 deleteIcon={<ArrowBackIcon />}
                 onDelete={moveTodos('NEW')}
                 variant="outlined"
-                sx={{ minWidth: 150 }}
+                sx={{ ...blurStyling, minWidth: 150 }}
               />
               <Chip
                 label="Als COMPLETED markieren"
@@ -54,7 +55,8 @@ export default function SortTodos({ status, checkedTodos, onMoveTodos }: SortTod
                 disabled={checkedTodos.length === 0}
                 deleteIcon={<DoneIcon />}
                 onDelete={moveTodos('COMPLETED')}
-                sx={{ minWidth: 180 }}
+                variant="outlined"
+                sx={{ ...blurStyling, minWidth: 180 }}
               />
             </>
           )}
@@ -67,7 +69,7 @@ export default function SortTodos({ status, checkedTodos, onMoveTodos }: SortTod
               deleteIcon={<ArrowBackIcon />}
               onDelete={moveTodos('OPEN')}
               variant="outlined"
-              sx={{ minWidth: 180 }}
+              sx={{ ...blurStyling, minWidth: 180 }}
             />
           )}
         </Stack>

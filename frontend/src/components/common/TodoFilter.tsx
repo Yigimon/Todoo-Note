@@ -73,7 +73,9 @@ export default function TodoFilter({
               fullWidth
               value={filters.createdAt || ''}
               onChange={(e) => handleFilterChange('createdAt', e.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{
+              inputLabel: { shrink: true }
+              }}
             />
 
             {/* Ablaufdatum Filter */}
@@ -84,7 +86,9 @@ export default function TodoFilter({
               fullWidth
               value={filters.expiresAt || ''}
               onChange={(e) => handleFilterChange('expiresAt', e.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{
+              inputLabel: { shrink: true }
+              }}
             />
 
             <Divider />
@@ -105,6 +109,7 @@ export default function TodoFilter({
                 <MenuItem value="createdAt">Erstellt am</MenuItem>
                 <MenuItem value="expiresAt">Läuft ab am</MenuItem>
                 <MenuItem value="status">Status</MenuItem>
+                <MenuItem value="priority">Priorität</MenuItem>
               </Select>
             </FormControl>
 

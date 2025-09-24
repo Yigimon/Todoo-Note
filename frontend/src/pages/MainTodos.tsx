@@ -19,7 +19,7 @@ import { useCreateTodo } from '../hooks/useCreateTodo';
 export default function MainTodos() {
   // Custom Hooks für saubere Trennung der Logik
   const { filters, handleFiltersChange, handleClearFilters } = useFilters();
-  const { todos, loading, addTodo } = useTodos(filters);
+  const { todos, loading, addTodo, updateTodo } = useTodos(filters);
   const {
     filterAnchorEl,
     viewAnchorEl,
@@ -71,6 +71,7 @@ export default function MainTodos() {
       <TodoKanbanBoard 
         todos={todos}
         loading={loading}
+        onUpdateTodo={updateTodo}
       />
 
       {/* Filter Popover */}
