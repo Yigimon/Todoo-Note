@@ -17,7 +17,7 @@ import { usePopovers } from '../hooks/usePopovers';
 import { useCreateTodo } from '../hooks/useCreateTodo';
 
 export default function MainTodos() {
-  // Custom Hooks für saubere Trennung der Logik
+  // Custom Hooks
   const { filters, handleFiltersChange, handleClearFilters } = useFilters();
   const { todos, loading, addTodo, updateTodo } = useTodos(filters);
   const {

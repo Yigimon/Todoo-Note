@@ -12,7 +12,7 @@ export interface StandardApiRes<DataType = any> {
 
 //API response types for different endpoints
 export interface GetAllTodosApiRes extends StandardApiRes<TodoWithUserData[]> {
-  count?: number; //total count
+  count?: number; 
 }
 
 export interface GetSingleTodoApiRes extends StandardApiRes<TodoWithUserData> {}

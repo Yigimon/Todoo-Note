@@ -24,10 +24,11 @@ export const userLoginValSchema = z.object({
 export const createTodoValSchema = z.object({
   title: z.string().min(1, 'Title is required').max(64, "Title is to long"),
   description: z.string().max(512, "Description is to long").optional(),
+  status: z.nativeEnum(Status).default('NEW').optional(),
   priority: z.nativeEnum(Priority).default('MEDIUM').optional(),
-  expiresAt: z.string().datetime().optional(),
+  expiresAt: z.string().optional().nullable(),
   tags: z.array(z.string()).default([]).optional(), 
-  remindAt: z.string().datetime().optional(),
+  remindAt: z.string().optional().nullable(),
 });
 
 export const updateTodoValSchema = z.object({
@@ -35,9 +36,9 @@ export const updateTodoValSchema = z.object({
   description: z.string().max(512, "Description is to long").optional(),
   status: z.nativeEnum(Status).optional(),
   priority: z.nativeEnum(Priority).optional(), 
-  expiresAt: z.string().datetime().optional(),
+  expiresAt: z.string().optional().nullable(),
   tags: z.array(z.string()).optional(),
-  remindAt: z.string().datetime().optional(),
+  remindAt: z.string().optional().nullable(),
 });
 
 export const todoIdValSchema = z.object({

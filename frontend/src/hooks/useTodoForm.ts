@@ -36,7 +36,8 @@ export const useTodoForm = (onSubmit?: (todo: NewTodoData) => void, onClose?: ()
   const handleSubmit = () => {
     if (formData.title.trim()) {
       onSubmit?.(formData);
-      handleClose();
+      // Formular wird nur geschlossen, wenn onSubmit erfolgreich war
+      // Das schließen wird vom useCreateTodo Hook gehandhabt
     }
   };
 

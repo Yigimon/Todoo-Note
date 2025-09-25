@@ -45,14 +45,19 @@ export type CreateTodoData = {
   remindAt?: string;
 };
 
+const apiClient = axios.create({
+  baseURL: 'http://localhost:3001/api',
+  withCredentials: true
+});
+
 export async function fetchAllTodosAxios() {
-  const response = await axios.get('http://localhost:3001/api/todos');
+  const response = await apiClient.get('/todos');
   // Backend sendet { success: true, data: [...], count: n }
   return response.data.data || [];
 }
 
 export async function createTodoAxios(todoData: CreateTodoData): Promise<Todo> {
-  const response = await axios.post('http://localhost:3001/api/todos', {
+  const response = await apiClient.post('/todos', {
     title: todoData.title,
     description: todoData.description || '',
     status: todoData.status || 'NEW',
@@ -70,7 +75,7 @@ export async function createTodoAxios(todoData: CreateTodoData): Promise<Todo> {
 }
 
 export async function updateTodoStatusAxios(todoId: string, status: Status): Promise<Todo> {
-  const response = await axios.put(`http://localhost:3001/api/todos/${todoId}`, {
+  const response = await apiClient.put(`/todos/${todoId}`, {
     status
   });
   

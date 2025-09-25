@@ -7,7 +7,11 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import blurStyle from '../../services/stylingService';
 
-export default function ButtonAppBar() {
+interface NavigationBarProps {
+  onLogout: () => void;
+}
+
+export default function ButtonAppBar({ onLogout }: NavigationBarProps) {
   return (
     <Box sx={{ flexGrow: 1, ...blurStyle }}>
       <AppBar position="static">
@@ -24,7 +28,7 @@ export default function ButtonAppBar() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             TODO NOTE
           </Typography>
-          <Button color="inherit">Login</Button>
+          <Button color="inherit" onClick={onLogout}>Log Out</Button>
         </Toolbar>
       </AppBar>
     </Box>

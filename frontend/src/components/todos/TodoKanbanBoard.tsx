@@ -14,6 +14,8 @@ import type { Todo } from '../../services/todoServices';
 import { useTodoSelection } from '../../hooks/useTodoSelection';
 import { useTodoStatus } from '../../hooks/useTodoStatus';
 import blurStyling from '../../services/stylingService';
+import EditTodoPopUp from '../common/EditTodoPopUp';
+import { useState } from 'react';
 
 // Helper functions
 const getPriorityColor = (priority: string): string => {
@@ -33,8 +35,20 @@ interface TodoListProps {
 }
 
 export default function KanbanTransferList({ todos, loading = false, onUpdateTodo }: TodoListProps) {
-  const { checked, handleToggle, getCheckedTodosForStatus } = useTodoSelection();
+  const { checked, handleToggle, getCheckedTodosForStatus, clearSelection } = useTodoSelection();
   const { newTodos, openTodos, completedTodos } = useTodoStatus(todos);
+  const [editTodoOpen, setEditTodoOpen] = useState(false);
+  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
+
+  const handleEditTodo = (todo: Todo) => {
+    setSelectedTodo(todo);
+    setEditTodoOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    setEditTodoOpen(false);
+    setSelectedTodo(null);
+  };
 
   // Move Todos zwischen Status
   const moveChecked = (from: Todo[], toStatus: string) => {
@@ -44,6 +58,8 @@ export default function KanbanTransferList({ todos, loading = false, onUpdateTod
       onUpdateTodo(updatedTodo);
       // TODO: Backend-Update (z.B. per Axios PUT/POST)
     });
+    // Markierungen nach dem Verschieben löschen
+    clearSelection();
   };// List für eine Status-Spalte
 const customList = (items: readonly Todo[]) => (
   <Paper elevation={3} sx={{ 
@@ -58,78 +74,89 @@ const customList = (items: readonly Todo[]) => (
       {items.map((todo) => {
         const labelId = `transfer-list-item-${todo.id}-label`;
         return (
-          <ListItemButton
-            key={todo.id}
-            role="listitem"
-            onClick={handleToggle(todo)}
-            sx={{ mb: 1 }}
-          >
-            <ListItemIcon>
+          <Box key={todo.id} sx={{ display: 'flex', mb: 1 }}>
+            {/* Links: Kleiner Bereich für Checkbox */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '60px',
+                cursor: 'pointer',
+                '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.08)' }
+              }}
+            >
               <Checkbox
                 checked={checked.some(t => t.id === todo.id)}
+                onChange={handleToggle(todo)}
                 tabIndex={-1}
                 disableRipple
-                slotProps={{ 'input': labelId }}
               />
-            </ListItemIcon>
-            <ListItemText
-              id={labelId}
-              primary={
-                <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                  <strong style={{ flex: 1 }}>{todo.title}</strong>
-                </div>
-              }
-              secondary={
-                <div>
-                  <div>{todo.description || 'Keine Beschreibung vorhanden'}</div>
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#666', 
-                    marginTop: '8px',
-                    display: 'flex',
-                    gap: '8px',
-                    flexWrap: 'wrap'
-                   
-                  }}>
-                    {/* Erstellungsdatum, Fälligkeitsdatum, Priorität */}
-                    <Tooltip title={`Erstellt am: ${new Date(todo.createdAt).toLocaleDateString('de-DE')}`}>
-                      <Chip 
-                        label={new Date(todo.createdAt).toLocaleDateString('de-DE')} 
-                        size="small"
-                        variant="outlined"
-                        sx={blurStyling}
-                      />
-                    </Tooltip>
-                    
-                    <Tooltip title={`Gültig bis: ${todo.expiresAt ? new Date(todo.expiresAt).toLocaleDateString('de-DE') : 'Kein Limit'}`}>
-                      <Chip 
-                        label={todo.expiresAt ? new Date(todo.expiresAt).toLocaleDateString('de-DE') : 'Kein Limit'} 
-                        size="small"
-                        variant="outlined"
-                        sx={blurStyling}
-                      />
-                    </Tooltip>
-                    
-                    <Tooltip title={`Priorität: ${todo.priority}`}>
-                      <Chip
-                        label={todo.priority}
-                        size="small"
-                        sx={{
-                          ...blurStyling,
-                          backgroundColor: getPriorityColor(todo.priority),
-                          color: 'white',
-                          fontWeight: 'bold',
-                          fontSize: '11px',
-                          padding: '2px 8px',
-                          borderRadius: '12px'
-                        }}
-                      />
-                    </Tooltip> 
+            </Box>
+            
+            {/* Rechts: Großer Bereich für Edit */}
+            <ListItemButton
+              onClick={() => handleEditTodo(todo)}
+              sx={{ flex: 1, p: 1 }}
+            >
+              <ListItemText
+                primary={
+                  <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <strong style={{ flex: 1 }}>{todo.title}</strong>
                   </div>
-                </div>
-              }                
-            />
-          </ListItemButton>
+                }
+                secondary={
+                  <div>
+                    <div>{todo.description || 'Keine Beschreibung vorhanden'}</div>
+                    <div style={{ 
+                      fontSize: '12px', 
+                      color: '#666', 
+                      marginTop: '8px',
+                      display: 'flex',
+                      gap: '8px',
+                      flexWrap: 'wrap'
+                     
+                    }}>
+                      {/* Erstellungsdatum, Fälligkeitsdatum, Priorität */}
+                      <Tooltip title={`Erstellt am: ${new Date(todo.createdAt).toLocaleDateString('de-DE')}`}>
+                        <Chip 
+                          label={new Date(todo.createdAt).toLocaleDateString('de-DE')} 
+                          size="small"
+                          variant="outlined"
+                          sx={blurStyling}
+                        />
+                      </Tooltip>
+                      
+                      <Tooltip title={`Gültig bis: ${todo.expiresAt ? new Date(todo.expiresAt).toLocaleDateString('de-DE') : 'Kein Limit'}`}>
+                        <Chip 
+                          label={todo.expiresAt ? new Date(todo.expiresAt).toLocaleDateString('de-DE') : 'Kein Limit'} 
+                          size="small"
+                          variant="outlined"
+                          sx={blurStyling}
+                        />
+                      </Tooltip>
+                      
+                      <Tooltip title={`Priorität: ${todo.priority}`}>
+                        <Chip
+                          label={todo.priority}
+                          size="small"
+                          sx={{
+                            ...blurStyling,
+                            backgroundColor: getPriorityColor(todo.priority),
+                            color: 'white',
+                            fontWeight: 'bold',
+                            fontSize: '11px',
+                            padding: '2px 8px',
+                            borderRadius: '12px'
+                          }}
+                        />
+                      </Tooltip> 
+                    </div>
+                  </div>
+                }                
+              />
+            </ListItemButton>
+          </Box>
         );
       })}
     </List>
@@ -150,30 +177,32 @@ const createTodoColumn = (todos: readonly Todo[], status: string, checkedTodos: 
   </Box>
 );
 
-return (
-  <Box sx={{ width: '100%'}}>
-    {loading ? (
-      <Box sx={{ textAlign: 'center', py: 4 }}>
-        Lade Todos...
-      </Box>
-      
-    ) : (
-      <Stack direction="row" spacing={2} sx={{ 
-        justifyContent: 'space-between',
-        alignItems: 'stretch',
-        width: '100%',
+  return (
+    <Box sx={{ width: '100%'}}>
+      {loading ? (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          Lade Todos...
+        </Box>
         
-      }}>
-        {createTodoColumn(newTodos, 'NEW', getCheckedTodosForStatus(newTodos))}
-        {createTodoColumn(openTodos, 'OPEN', getCheckedTodosForStatus(openTodos))}
-        {createTodoColumn(completedTodos, 'COMPLETED', getCheckedTodosForStatus(completedTodos))}
-       
-      </Stack>
-    )}
-  </Box>
-);
-
-
-
-
+      ) : (
+        <Stack direction="row" spacing={2} sx={{ 
+          justifyContent: 'space-between',
+          alignItems: 'stretch',
+          width: '100%',
+          
+        }}>
+          {createTodoColumn(newTodos, 'NEW', getCheckedTodosForStatus(newTodos))}
+          {createTodoColumn(openTodos, 'OPEN', getCheckedTodosForStatus(openTodos))}
+          {createTodoColumn(completedTodos, 'COMPLETED', getCheckedTodosForStatus(completedTodos))}
+         
+        </Stack>
+      )}
+      
+      {/* Edit Todo Popup */}
+      <EditTodoPopUp
+        open={editTodoOpen}
+        onClose={handleCloseEdit}
+      />
+    </Box>
+  );
 }

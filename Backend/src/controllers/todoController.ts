@@ -13,11 +13,20 @@ export class TodoController {
   // Retrieve all todos with basic filtering
   static async getAllTodosWithUserData(req: Request, res: Response<ApiTypes.GetAllTodosApiRes | ApiTypes.ApiErrorRes>) {
     try {
+      // Verwende die User-ID aus der authentifizierten Session
+      const user = req.user as any;
+      if (!user || !user.id) {
+        return ResponseHelper.send500(res, 'User not authenticated');
+      }
+
       // query parameters
       const filters = req.query as unknown as TodoFilterQuery;
       
-      // Build basic WHERE clause
-      const whereClause = UserSelectHelper.buildTodoFilter(filters);
+      // Build basic WHERE clause and add userId filter
+      const whereClause = {
+        ...UserSelectHelper.buildTodoFilter(filters),
+        userId: user.id // Nur Todos des eingeloggten Users
+      };
       
       // Build basic ORDER BY
       const orderBy = UserSelectHelper.buildTodoOrderBy(filters);
@@ -37,15 +46,21 @@ export class TodoController {
   
   static async createNewTodoWithUser(req: Request, res: Response<ApiTypes.CreateTodoApiRes | ApiTypes.ApiErrorRes>) {
     try {
+      // Verwende die User-ID aus der authentifizierten Session
+      const user = req.user as any;
+      if (!user || !user.id) {
+        return ResponseHelper.send500(res, 'User not authenticated');
+      }
+
       const newTodoDataForDb = {
         title: req.body.title,
         description: req.body.description || null,
-        userId: req.body.userId || 1, // Default user ID falls nicht angegeben
+        userId: user.id,
         priority: req.body.priority || 'MEDIUM',
-        status: req.body.status || 'NEW', // Status hinzufügen
-        expiresAt: req.body.expiresAt ? new Date(req.body.expiresAt) : null,
+        status: req.body.status || 'NEW',
+        expiresAt: (req.body.expiresAt && req.body.expiresAt !== '' && req.body.expiresAt !== null) ? new Date(req.body.expiresAt) : null,
         tags: req.body.tags || [],
-        remindAt: req.body.remindAt ? new Date(req.body.remindAt) : null,
+        remindAt: (req.body.remindAt && req.body.remindAt !== '' && req.body.remindAt !== null) ? new Date(req.body.remindAt) : null,
       };
 
       const createdTodoFromDb = await prismaDbClient.todo.create({
