@@ -13,6 +13,7 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useTodoForm, type NewTodoData } from '../../hooks/useTodoForm';
 import blurStyling from '../../services/stylingService';
+import type { Todo } from '../../services/todoServices';
 
 interface EditTodoModalProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface EditTodoModalProps {
   onSubmit?: (todo: NewTodoData) => Promise<void>;
   loading?: boolean;
   error?: string | null;
+  initialData?: Todo | null;
 }
 
 export default function EditTodoPopUp({ 
@@ -27,9 +29,10 @@ export default function EditTodoPopUp({
   onClose, 
   onSubmit, 
   loading = false, 
-  error = null 
+  error = null,
+  initialData = null
 }: EditTodoModalProps) {
-  const { formData, handleChange, handleSubmit, handleClose } = useTodoForm(onSubmit, onClose);
+  const { formData, handleChange, handleSubmit, handleClose } = useTodoForm(onSubmit, onClose, initialData);
 
   return (
     <Dialog 

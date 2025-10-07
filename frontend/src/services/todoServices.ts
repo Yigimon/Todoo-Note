@@ -57,6 +57,16 @@ export async function fetchAllTodosAxios() {
 }
 
 export async function createTodoAxios(todoData: CreateTodoData): Promise<Todo> {
+  // Get current user first
+  const userResponse = await fetch('http://localhost:3001/api/auth/me', {
+    credentials: 'include'
+  });
+  const userData = await userResponse.json();
+  
+  if (!userData.success || !userData.data?.id) {
+    throw new Error('User not authenticated');
+  }
+
   const response = await apiClient.post('/todos', {
     title: todoData.title,
     description: todoData.description || '',
@@ -64,7 +74,8 @@ export async function createTodoAxios(todoData: CreateTodoData): Promise<Todo> {
     priority: todoData.priority || 'MEDIUM',
     expiresAt: todoData.expiresAt || null,
     remindAt: todoData.remindAt || null,
-    tags: todoData.tags || []
+    tags: todoData.tags || [],
+    userId: userData.data.id
   });
   
   if (!response.data.success) {
@@ -84,5 +95,31 @@ export async function updateTodoStatusAxios(todoId: string, status: Status): Pro
   }
   
   return response.data.data;
+}
+
+export async function updateTodoAxios(todoId: string, todoData: Partial<CreateTodoData>): Promise<Todo> {
+  const response = await apiClient.put(`/todos/${todoId}`, {
+    title: todoData.title,
+    description: todoData.description,
+    status: todoData.status,
+    priority: todoData.priority,
+    expiresAt: todoData.expiresAt || null,
+    remindAt: todoData.remindAt || null,
+    tags: todoData.tags || []
+  });
+  
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to update todo');
+  }
+  
+  return response.data.data;
+}
+
+export async function deleteTodoAxios(todoId: string): Promise<void> {
+  const response = await apiClient.delete(`/todos/${todoId}`);
+  
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to delete todo');
+  }
 }
 

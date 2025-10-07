@@ -5,7 +5,6 @@ import TodoKanbanBoard from '../components/todos/TodoKanbanBoard';
 import CreateTodoPopUp from '../components/common/CreateTodoPopUp';
 import StatusColumns from '../components/common/StatusColumns';
 import SearchBar from '../components/common/SearchBar';
-import QuickFilter from '../components/common/QuickFilter';
 import FilterToolbar from '../components/common/FilterToolbar';
 import TodoFilter from '../components/common/TodoFilter';
 import FloatingActionButton from '../components/common/FloatingActionButton';
@@ -19,7 +18,7 @@ import { useCreateTodo } from '../hooks/useCreateTodo';
 export default function MainTodos() {
   // Custom Hooks
   const { filters, handleFiltersChange, handleClearFilters } = useFilters();
-  const { todos, loading, addTodo, updateTodo } = useTodos(filters);
+  const { todos, loading, addTodo, updateTodo, deleteTodo } = useTodos(filters);
   const {
     filterAnchorEl,
     viewAnchorEl,
@@ -43,21 +42,14 @@ export default function MainTodos() {
       
       {/* Filter Section */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-        <Box sx={{ flex: '1 1 300px' }}>
+        <Box sx={{ flex: '1 1 auto' }}>
           <SearchBar 
             filters={filters}
             onFiltersChange={handleFiltersChange}
           />
         </Box>
 
-        <Box sx={{ flex: '1 1 300px' }}>
-          <QuickFilter 
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-          />
-        </Box>
-
-        <Box sx={{ flex: '1 1 300px' }}>
+        <Box sx={{ flex: '0 0 auto' }}>
           <FilterToolbar 
             filters={filters}
             onFilterClick={handleFilterClick}
@@ -72,6 +64,7 @@ export default function MainTodos() {
         todos={todos}
         loading={loading}
         onUpdateTodo={updateTodo}
+        onDeleteTodo={deleteTodo}
       />
 
       {/* Filter Popover */}

@@ -43,10 +43,14 @@ export class TodoFilterService {
             const queryString = this.buildQueryString(filters);
             const url = `http://localhost:3001/api/todos${queryString ? `?${queryString}` : ''}`;
 
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                credentials: 'include' // Session-Cookie mitsenden!
+            });
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+            
             const result = await response.json();
             // Backend sendet { success: true, data: [...], count: n }
             return result.data || [];
@@ -54,40 +58,6 @@ export class TodoFilterService {
             console.error('Error fetching filtered todos:', error);
             throw error;
         }
-    }
-
-    static getPresetFilters() {
-        return {
-            // Expires today
-            today: (): TodoQueryParams => ({
-                expiresAt: new Date().toISOString().split('T')[0], 
-                sortBy: 'expiresAt',
-                sortOrder: 'asc'
-            }),
-
-            // New Todos
-            newTodos: (): TodoQueryParams => ({
-                status: Status.NEW,
-                sortBy: 'createdAt',
-                sortOrder: 'desc'
-            }),
-
-            // Open todos
-            openTodos: (): TodoQueryParams => ({
-                status: Status.OPEN,
-                sortBy: 'createdAt',
-                sortOrder: 'desc'
-            }),
-
-            // Finished todos
-            completedTodos: (): TodoQueryParams => ({
-                status: Status.COMPLETED,
-                sortBy: 'createdAt',
-                sortOrder: 'desc'
-            }),
-
-           
-        };
     }
 }
 

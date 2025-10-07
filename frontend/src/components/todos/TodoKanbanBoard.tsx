@@ -3,19 +3,21 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
 import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
-import { Chip } from '@mui/material';
+import { Chip, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import TodoStatusButtons from '../common/TodoStatusButtons';
 import type { Todo } from '../../services/todoServices';
+import { updateTodoStatusAxios, updateTodoAxios, deleteTodoAxios } from '../../services/todoServices';
 import { useTodoSelection } from '../../hooks/useTodoSelection';
 import { useTodoStatus } from '../../hooks/useTodoStatus';
 import blurStyling from '../../services/stylingService';
 import EditTodoPopUp from '../common/EditTodoPopUp';
 import { useState } from 'react';
+import type { NewTodoData } from '../../hooks/useTodoForm';
 
 // Helper functions
 const getPriorityColor = (priority: string): string => {
@@ -32,13 +34,16 @@ interface TodoListProps {
   todos: Todo[];
   loading?: boolean;
   onUpdateTodo: (updatedTodo: Todo) => void;
+  onDeleteTodo: (todoId: string) => void;
 }
 
-export default function KanbanTransferList({ todos, loading = false, onUpdateTodo }: TodoListProps) {
+export default function KanbanTransferList({ todos, loading = false, onUpdateTodo, onDeleteTodo }: TodoListProps) {
   const { checked, handleToggle, getCheckedTodosForStatus, clearSelection } = useTodoSelection();
   const { newTodos, openTodos, completedTodos } = useTodoStatus(todos);
   const [editTodoOpen, setEditTodoOpen] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
 
   const handleEditTodo = (todo: Todo) => {
     setSelectedTodo(todo);
@@ -50,16 +55,61 @@ export default function KanbanTransferList({ todos, loading = false, onUpdateTod
     setSelectedTodo(null);
   };
 
-  // Move Todos zwischen Status
-  const moveChecked = (from: Todo[], toStatus: string) => {
-    const validStatus = toStatus as 'NEW' | 'OPEN' | 'COMPLETED';
-    from.forEach(todo => {
-      const updatedTodo = { ...todo, status: validStatus };
+  const handleEditSubmit = async (todoData: NewTodoData) => {
+    if (!selectedTodo) return;
+    
+    try {
+      const updatedTodo = await updateTodoAxios(selectedTodo.id, todoData);
       onUpdateTodo(updatedTodo);
-      // TODO: Backend-Update (z.B. per Axios PUT/POST)
-    });
-    // Markierungen nach dem Verschieben löschen
-    clearSelection();
+      handleCloseEdit();
+    } catch (error) {
+      console.error('Failed to update todo:', error);
+      alert('Fehler beim Aktualisieren des Todos');
+    }
+  };
+
+  const handleDeleteClick = (todo: Todo, event: React.MouseEvent) => {
+    event.stopPropagation(); // Verhindert Edit-Click
+    setTodoToDelete(todo);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!todoToDelete) return;
+    
+    try {
+      await deleteTodoAxios(todoToDelete.id);
+      onDeleteTodo(todoToDelete.id);
+      setDeleteDialogOpen(false);
+      setTodoToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete todo:', error);
+      alert('Fehler beim Löschen des Todos');
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setTodoToDelete(null);
+  };
+
+  // Move Todos zwischen Status mit Backend-Persistierung
+  const moveChecked = async (from: Todo[], toStatus: string) => {
+    const validStatus = toStatus as 'NEW' | 'OPEN' | 'COMPLETED';
+    
+    try {
+      // Update alle ausgewählten Todos im Backend
+      const updatePromises = from.map(async (todo) => {
+        const updatedTodo = await updateTodoStatusAxios(todo.id, validStatus);
+        onUpdateTodo(updatedTodo);
+      });
+      
+      await Promise.all(updatePromises);
+      clearSelection();
+    } catch (error) {
+      console.error('Failed to update todo status:', error);
+      alert('Fehler beim Aktualisieren des Status');
+    }
   };// List für eine Status-Spalte
 const customList = (items: readonly Todo[]) => (
   <Paper elevation={3} sx={{ 
@@ -72,7 +122,6 @@ const customList = (items: readonly Todo[]) => (
   }}>
     <List dense component="div" role="list">
       {items.map((todo) => {
-        const labelId = `transfer-list-item-${todo.id}-label`;
         return (
           <Box key={todo.id} sx={{ display: 'flex', mb: 1 }}>
             {/* Links: Kleiner Bereich für Checkbox */}
@@ -97,7 +146,7 @@ const customList = (items: readonly Todo[]) => (
             {/* Rechts: Großer Bereich für Edit */}
             <ListItemButton
               onClick={() => handleEditTodo(todo)}
-              sx={{ flex: 1, p: 1 }}
+              sx={{ flex: 1, p: 1, display: 'flex', alignItems: 'center', gap: 1 }}
             >
               <ListItemText
                 primary={
@@ -155,6 +204,19 @@ const customList = (items: readonly Todo[]) => (
                   </div>
                 }                
               />
+              
+              {/* Delete Button */}
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={(e) => handleDeleteClick(todo, e)}
+                sx={{ 
+                  color: '#f44336',
+                  '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.1)' }
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
             </ListItemButton>
           </Box>
         );
@@ -202,7 +264,35 @@ const createTodoColumn = (todos: readonly Todo[], status: string, checkedTodos: 
       <EditTodoPopUp
         open={editTodoOpen}
         onClose={handleCloseEdit}
+        onSubmit={handleEditSubmit}
+        initialData={selectedTodo}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Todo löschen?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-dialog-description">
+            Möchten Sie das Todo "{todoToDelete?.title}" wirklich löschen? 
+            Diese Aktion kann nicht rückgängig gemacht werden.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Abbrechen
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained" autoFocus>
+            Löschen
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

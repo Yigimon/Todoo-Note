@@ -14,9 +14,8 @@ router.post('/register',
   AuthController.registerUser
 );
 
-// POST /auth/login - User Login
+// POST /auth/login - User Login (requireNoAuth entfernt - erlaubt Re-Login)
 router.post('/login',
-  requireNoAuth,
   validate(userLoginValSchema),
   passport.authenticate('local', {
     failureMessage: true

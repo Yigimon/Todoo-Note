@@ -9,7 +9,10 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
     return next();
   }
   
-  return ResponseHelper.send500(res, 'Authentication required. Please login first.');
+  return res.status(401).json({
+    success: false,
+    message: 'Authentication required. Please login first.'
+  });
 };
 
 
@@ -17,7 +20,10 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
  
 export const requireNoAuth = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated && req.isAuthenticated()) {
-    return ResponseHelper.send500(res, 'Already authenticated. Please logout first.');
+    return res.status(400).json({
+      success: false,
+      message: 'Already authenticated. Please logout first.'
+    });
   }
   
   return next();
