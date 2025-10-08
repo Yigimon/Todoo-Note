@@ -2,7 +2,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import MainTodos from './pages/MainTodos';
 import ButtonAppBar from './components/common/NavigationBar';
 import a from './assets/a.jpg';
-import { Box, CircularProgress } from '@mui/material';
+import { Box } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
 import LogIn from './pages/logIn';
@@ -14,48 +14,46 @@ const darkTheme = createTheme({
     mode: 'dark',
   },
 })
-
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const { logout, checkAuthStatus } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const { logout, getCurrentUser } = useAuth();
 
-  // Beim App-Start: Prüfe ob User bereits eingeloggt ist
+  // Check if user is already authenticated on app load
   useEffect(() => {
-    const checkSession = async () => {
-      setIsCheckingAuth(true);
-      const isLoggedIn = await checkAuthStatus();
-      setIsAuthenticated(isLoggedIn);
-      setIsCheckingAuth(false);
+    const checkAuth = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    checkSession();
-  }, [checkAuthStatus]);
-
-  const handleLogin = (authenticated: boolean) => {
-    setIsAuthenticated(authenticated);
-  };
+    checkAuth();
+  }, [getCurrentUser]);
 
   const handleLogout = async () => {
     await logout(); 
     setIsAuthenticated(false); 
   };
 
-  // Loading-Screen während Session-Check
-  if (isCheckingAuth) {
+  // Show loading state while checking authentication
+  if (isLoading) {
     return (
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            minHeight: '100vh',
-            backgroundColor: '#121212'
-          }}
-        >
-          <CircularProgress size={60} />
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh' 
+        }}>
+          Loading...
         </Box>
       </ThemeProvider>
     );
@@ -68,12 +66,19 @@ function App() {
       {isAuthenticated ? (
         <>
       <ButtonAppBar onLogout={handleLogout} />
-      <Box sx={{ backgroundImage: `url(${a})`, backgroundSize: 'cover', minHeight: '100vh' }}>
+      <Box sx={{ 
+        backgroundImage: `url(${a})`, 
+        backgroundSize: 'cover', 
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
+      }}>
         <MainTodos />
       </Box>
         </>
       ) : (
-        <LogIn onLogin={handleLogin} />
+        <LogIn onLogin={setIsAuthenticated} />
       )}
       </ThemeProvider>
   );

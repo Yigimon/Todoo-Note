@@ -11,28 +11,44 @@ import MenuItem from '@mui/material/MenuItem';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
+import { useEffect } from 'react';
 import { useTodoForm, type NewTodoData } from '../../hooks/useTodoForm';
-import blurStyling from '../../services/stylingService';
 import type { Todo } from '../../services/todoServices';
+import blurStyling from '../../services/stylingService';
 
 interface EditTodoModalProps {
   open: boolean;
   onClose: () => void;
+  todo?: Todo | null;
   onSubmit?: (todo: NewTodoData) => Promise<void>;
   loading?: boolean;
   error?: string | null;
-  initialData?: Todo | null;
 }
 
 export default function EditTodoPopUp({ 
   open, 
-  onClose, 
+  onClose,
+  todo,
   onSubmit, 
   loading = false, 
-  error = null,
-  initialData = null
+  error = null 
 }: EditTodoModalProps) {
-  const { formData, handleChange, handleSubmit, handleClose } = useTodoForm(onSubmit, onClose, initialData);
+  const { formData, handleChange, handleSubmit, handleClose, setFormData } = useTodoForm(onSubmit, onClose);
+
+  // Load todo data when editing
+  useEffect(() => {
+    if (todo && open) {
+      setFormData({
+        title: todo.title,
+        description: todo.description || '',
+        status: todo.status,
+        priority: todo.priority,
+        expiresAt: todo.expiresAt ? todo.expiresAt.split('T')[0] : '',
+        remindAt: todo.remindAt || '',
+        tags: todo.tags || []
+      });
+    }
+  }, [todo, open, setFormData]);
 
   return (
     <Dialog 

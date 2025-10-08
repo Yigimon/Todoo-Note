@@ -11,11 +11,6 @@ export default function FloatingActionButton({ onAdd }: FloatingActionButtonProp
       color="primary" 
       aria-label="add"
       onClick={onAdd}
-      sx={{
-        position: 'fixed',
-        bottom: 16,
-        right: 16,
-      }}
     >
       <AddIcon />
     </Fab>

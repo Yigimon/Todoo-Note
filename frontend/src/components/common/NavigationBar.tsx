@@ -9,9 +9,10 @@ import blurStyle from '../../services/stylingService';
 
 interface NavigationBarProps {
   onLogout: () => void;
+  statusButtons?: React.ReactNode;
 }
 
-export default function ButtonAppBar({ onLogout }: NavigationBarProps) {
+export default function ButtonAppBar({ onLogout, statusButtons }: NavigationBarProps) {
   return (
     <Box sx={{ flexGrow: 1, ...blurStyle }}>
       <AppBar position="static">
@@ -28,6 +29,11 @@ export default function ButtonAppBar({ onLogout }: NavigationBarProps) {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             TODO NOTE
           </Typography>
+          {statusButtons && (
+            <Box sx={{ display: 'flex', gap: 1, mr: 2 }}>
+              {statusButtons}
+            </Box>
+          )}
           <Button color="inherit" onClick={onLogout}>Log Out</Button>
         </Toolbar>
       </AppBar>

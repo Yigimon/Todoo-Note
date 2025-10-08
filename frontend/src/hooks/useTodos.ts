@@ -38,12 +38,6 @@ export const useTodos = (filters: TodoQueryParams) => {
     );
   };
 
-  const deleteTodo = (todoId: string) => {
-    setTodos(prevTodos => 
-      prevTodos.filter(todo => todo.id !== todoId)
-    );
-  };
-
   const refreshTodos = async () => {
     setLoading(true);
     try {
@@ -61,8 +55,7 @@ export const useTodos = (filters: TodoQueryParams) => {
     loading, 
     setTodos, 
     addTodo, 
-    updateTodo,
-    deleteTodo,
+    updateTodo, 
     refreshTodos 
   };
 };

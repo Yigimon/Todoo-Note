@@ -64,21 +64,10 @@ export const useAuth = () => {
     }
   }, []);
 
-  const checkAuthStatus = useCallback(async (): Promise<boolean> => {
-    try {
-      const result = await AuthService.getCurrentUser();
-      return result.success && !!result.data;
-    } catch (err) {
-      console.error('Auth check failed:', err);
-      return false;
-    }
-  }, []);
-
   return {
     login,
     logout,
     getCurrentUser,
-    checkAuthStatus,
     loading,
     error,
     clearError: () => setError(null)

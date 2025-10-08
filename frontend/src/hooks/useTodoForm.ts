@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { type Status, type Priority, type Todo } from '../services/todoServices';
+import { useState } from 'react';
+import { type Status, type Priority } from '../services/todoServices';
 
 export interface NewTodoData {
   title: string;
@@ -21,29 +21,8 @@ const initialFormData: NewTodoData = {
   tags: []
 };
 
-export const useTodoForm = (
-  onSubmit?: (todo: NewTodoData) => void, 
-  onClose?: () => void,
-  initialData?: Todo | null
-) => {
+export const useTodoForm = (onSubmit?: (todo: NewTodoData) => void, onClose?: () => void) => {
   const [formData, setFormData] = useState<NewTodoData>(initialFormData);
-
-  // Update form when initialData changes
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        title: initialData.title,
-        description: initialData.description || '',
-        status: initialData.status,
-        priority: initialData.priority,
-        expiresAt: initialData.expiresAt ? initialData.expiresAt.split('T')[0] : '',
-        remindAt: initialData.remindAt ? initialData.remindAt.slice(0, 16) : '',
-        tags: initialData.tags || []
-      });
-    } else {
-      setFormData(initialFormData);
-    }
-  }, [initialData]);
 
   const handleChange = (field: keyof NewTodoData) => (
     event: React.ChangeEvent<HTMLInputElement> | { target: { value: unknown } }
@@ -73,6 +52,7 @@ export const useTodoForm = (
 
   return {
     formData,
+    setFormData,
     handleChange,
     handleSubmit,
     handleClose,

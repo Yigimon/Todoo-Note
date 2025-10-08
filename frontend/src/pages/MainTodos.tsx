@@ -18,7 +18,7 @@ import { useCreateTodo } from '../hooks/useCreateTodo';
 export default function MainTodos() {
   // Custom Hooks
   const { filters, handleFiltersChange, handleClearFilters } = useFilters();
-  const { todos, loading, addTodo, updateTodo, deleteTodo } = useTodos(filters);
+  const { todos, loading, addTodo, updateTodo } = useTodos(filters);
   const {
     filterAnchorEl,
     viewAnchorEl,
@@ -37,19 +37,26 @@ export default function MainTodos() {
   } = useCreateTodo(addTodo);
 
   return (
-    <Box sx={{ width: '100%', height: '100%' }}>
+    <Box sx={{ 
+      width: '100%', 
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      p: 2,
+      overflow: 'hidden'
+    }}>
       <StatusColumns />
       
       {/* Filter Section */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-        <Box sx={{ flex: '1 1 auto' }}>
+      <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center', flexShrink: 0 }}>
+        <Box sx={{ flex: 1 }}>
           <SearchBar 
             filters={filters}
             onFiltersChange={handleFiltersChange}
           />
         </Box>
 
-        <Box sx={{ flex: '0 0 auto' }}>
+        <Box sx={{ flexShrink: 0 }}>
           <FilterToolbar 
             filters={filters}
             onFilterClick={handleFilterClick}
@@ -59,13 +66,18 @@ export default function MainTodos() {
         </Box>
       </Box>
 
-      {/* Todo Kanban Board */}
-      <TodoKanbanBoard 
-        todos={todos}
-        loading={loading}
-        onUpdateTodo={updateTodo}
-        onDeleteTodo={deleteTodo}
-      />
+      {/* Todo Kanban Board with fixed height and scrollbar */}
+      <Box sx={{ 
+        flex: 1,
+        overflow: 'auto',
+        minHeight: 0
+      }}>
+        <TodoKanbanBoard 
+          todos={todos}
+          loading={loading}
+          onUpdateTodo={updateTodo}
+        />
+      </Box>
 
       {/* Filter Popover */}
       <TodoFilter

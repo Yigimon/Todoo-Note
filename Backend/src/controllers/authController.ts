@@ -48,11 +48,19 @@ export class AuthController {
     // This will be called after successful Passport authentication
     const user = req.user as any;
     
-    ResponseHelper.send200(res, {
-      id: user.id,
-      email: user.email,
-      name: user.name
-    }, 200, 'Login successful');
+    // Explicitly save the session
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return ResponseHelper.send500(res, 'Login failed - session error', err);
+      }
+      
+      ResponseHelper.send200(res, {
+        id: user.id,
+        email: user.email,
+        name: user.name
+      }, 200, 'Login successful');
+    });
   }
   
   // POST /auth/logout - User Logout

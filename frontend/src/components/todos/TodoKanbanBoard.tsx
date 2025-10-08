@@ -7,17 +7,17 @@ import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
 import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
-import { Chip, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { Chip } from '@mui/material';
 import TodoStatusButtons from '../common/TodoStatusButtons';
 import type { Todo } from '../../services/todoServices';
-import { updateTodoStatusAxios, updateTodoAxios, deleteTodoAxios } from '../../services/todoServices';
 import { useTodoSelection } from '../../hooks/useTodoSelection';
 import { useTodoStatus } from '../../hooks/useTodoStatus';
 import blurStyling from '../../services/stylingService';
 import EditTodoPopUp from '../common/EditTodoPopUp';
 import { useState } from 'react';
-import type { NewTodoData } from '../../hooks/useTodoForm';
+import { updateTodoAxios, deleteTodoAxios } from '../../services/todoServices';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 // Helper functions
 const getPriorityColor = (priority: string): string => {
@@ -34,16 +34,13 @@ interface TodoListProps {
   todos: Todo[];
   loading?: boolean;
   onUpdateTodo: (updatedTodo: Todo) => void;
-  onDeleteTodo: (todoId: string) => void;
 }
 
-export default function KanbanTransferList({ todos, loading = false, onUpdateTodo, onDeleteTodo }: TodoListProps) {
+export default function KanbanTransferList({ todos, loading = false, onUpdateTodo }: TodoListProps) {
   const { checked, handleToggle, getCheckedTodosForStatus, clearSelection } = useTodoSelection();
   const { newTodos, openTodos, completedTodos } = useTodoStatus(todos);
   const [editTodoOpen, setEditTodoOpen] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
 
   const handleEditTodo = (todo: Todo) => {
     setSelectedTodo(todo);
@@ -55,68 +52,51 @@ export default function KanbanTransferList({ todos, loading = false, onUpdateTod
     setSelectedTodo(null);
   };
 
-  const handleEditSubmit = async (todoData: NewTodoData) => {
+  const handleUpdateTodo = async (updatedData: Partial<Todo>) => {
     if (!selectedTodo) return;
     
     try {
-      const updatedTodo = await updateTodoAxios(selectedTodo.id, todoData);
-      onUpdateTodo(updatedTodo);
+      const updated = await updateTodoAxios(selectedTodo.id, updatedData);
+      onUpdateTodo(updated);
       handleCloseEdit();
     } catch (error) {
-      console.error('Failed to update todo:', error);
-      alert('Fehler beim Aktualisieren des Todos');
+      console.error('Error updating todo:', error);
     }
   };
 
-  const handleDeleteClick = (todo: Todo, event: React.MouseEvent) => {
-    event.stopPropagation(); // Verhindert Edit-Click
-    setTodoToDelete(todo);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!todoToDelete) return;
+  const handleDeleteTodo = async (todoId: string) => {
+    if (!window.confirm('Möchten Sie dieses Todo wirklich löschen?')) {
+      return;
+    }
     
     try {
-      await deleteTodoAxios(todoToDelete.id);
-      onDeleteTodo(todoToDelete.id);
-      setDeleteDialogOpen(false);
-      setTodoToDelete(null);
+      await deleteTodoAxios(todoId);
+      // Optimistic update: Remove from local state
+      // Note: Parent component should handle refreshing the list
+      window.location.reload(); // Temporary solution
     } catch (error) {
-      console.error('Failed to delete todo:', error);
+      console.error('Error deleting todo:', error);
       alert('Fehler beim Löschen des Todos');
     }
   };
 
-  const handleDeleteCancel = () => {
-    setDeleteDialogOpen(false);
-    setTodoToDelete(null);
-  };
-
-  // Move Todos zwischen Status mit Backend-Persistierung
-  const moveChecked = async (from: Todo[], toStatus: string) => {
+  // Move Todos zwischen Status
+  const moveChecked = (from: Todo[], toStatus: string) => {
     const validStatus = toStatus as 'NEW' | 'OPEN' | 'COMPLETED';
-    
-    try {
-      // Update alle ausgewählten Todos im Backend
-      const updatePromises = from.map(async (todo) => {
-        const updatedTodo = await updateTodoStatusAxios(todo.id, validStatus);
-        onUpdateTodo(updatedTodo);
-      });
-      
-      await Promise.all(updatePromises);
-      clearSelection();
-    } catch (error) {
-      console.error('Failed to update todo status:', error);
-      alert('Fehler beim Aktualisieren des Status');
-    }
+    from.forEach(todo => {
+      const updatedTodo = { ...todo, status: validStatus };
+      onUpdateTodo(updatedTodo);
+      // TODO: Backend-Update (z.B. per Axios PUT/POST)
+    });
+    // Markierungen nach dem Verschieben löschen
+    clearSelection();
   };// List für eine Status-Spalte
 const customList = (items: readonly Todo[]) => (
   <Paper elevation={3} sx={{ 
     width: '100%',
-    height: '100vh',
+    height: '100%',
     overflow: 'auto',
-    p: 3,
+    p: 2,
     ...blurStyling
   
   }}>
@@ -146,18 +126,34 @@ const customList = (items: readonly Todo[]) => (
             {/* Rechts: Großer Bereich für Edit */}
             <ListItemButton
               onClick={() => handleEditTodo(todo)}
-              sx={{ flex: 1, p: 1, display: 'flex', alignItems: 'center', gap: 1 }}
+              sx={{ flex: 1, p: 1 }}
             >
               <ListItemText
+                primaryTypographyProps={{ component: 'div' }}
+                secondaryTypographyProps={{ component: 'div' }}
                 primary={
-                  <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                  <Box component="span" sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     <strong style={{ flex: 1 }}>{todo.title}</strong>
-                  </div>
+                    <IconButton
+                      edge="end"
+                      aria-label="delete"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTodo(todo.id);
+                      }}
+                      size="small"
+                      sx={{ color: '#f44336' }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
                 }
                 secondary={
-                  <div>
-                    <div>{todo.description || 'Keine Beschreibung vorhanden'}</div>
-                    <div style={{ 
+                  <Box component="span" sx={{ display: 'block' }}>
+                    <Box component="span" sx={{ display: 'block' }}>
+                      {todo.description || 'Keine Beschreibung vorhanden'}
+                    </Box>
+                    <Box component="span" sx={{ 
                       fontSize: '12px', 
                       color: '#666', 
                       marginTop: '8px',
@@ -200,23 +196,10 @@ const customList = (items: readonly Todo[]) => (
                           }}
                         />
                       </Tooltip> 
-                    </div>
-                  </div>
+                    </Box>
+                  </Box>
                 }                
               />
-              
-              {/* Delete Button */}
-              <IconButton
-                edge="end"
-                aria-label="delete"
-                onClick={(e) => handleDeleteClick(todo, e)}
-                sx={{ 
-                  color: '#f44336',
-                  '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.1)' }
-                }}
-              >
-                <DeleteIcon />
-              </IconButton>
             </ListItemButton>
           </Box>
         );
@@ -225,74 +208,84 @@ const customList = (items: readonly Todo[]) => (
   </Paper>
 );
 
-const createTodoColumn = (todos: readonly Todo[], status: string, checkedTodos: readonly Todo[]) => (
+const createTodoColumn = (todos: readonly Todo[]) => (
   <Box sx={{ 
     flex: '1 1 0',
     minWidth: 0,
     display: 'flex',
-    flexDirection: 'column-reverse',
+    flexDirection: 'column',
     alignItems: 'stretch',
     height: '100%',
   }}>
     {customList(todos)}
-    <TodoStatusButtons status={status} checkedTodos={checkedTodos} onMoveTodos={moveChecked} />
   </Box>
 );
 
   return (
-    <Box sx={{ width: '100%'}}>
+    <Box sx={{ 
+      width: '100%', 
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
       {loading ? (
         <Box sx={{ textAlign: 'center', py: 4 }}>
           Lade Todos...
         </Box>
         
       ) : (
-        <Stack direction="row" spacing={2} sx={{ 
-          justifyContent: 'space-between',
-          alignItems: 'stretch',
-          width: '100%',
-          
-        }}>
-          {createTodoColumn(newTodos, 'NEW', getCheckedTodosForStatus(newTodos))}
-          {createTodoColumn(openTodos, 'OPEN', getCheckedTodosForStatus(openTodos))}
-          {createTodoColumn(completedTodos, 'COMPLETED', getCheckedTodosForStatus(completedTodos))}
-         
-        </Stack>
+        <>
+          {/* Status Buttons oben */}
+          <Stack direction="row" spacing={2} sx={{ 
+            mb: 2,
+            flexShrink: 0
+          }}>
+            <Box sx={{ flex: 1 }}>
+              <TodoStatusButtons 
+                status="NEW" 
+                checkedTodos={getCheckedTodosForStatus(newTodos)} 
+                onMoveTodos={moveChecked} 
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <TodoStatusButtons 
+                status="OPEN" 
+                checkedTodos={getCheckedTodosForStatus(openTodos)} 
+                onMoveTodos={moveChecked} 
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <TodoStatusButtons 
+                status="COMPLETED" 
+                checkedTodos={getCheckedTodosForStatus(completedTodos)} 
+                onMoveTodos={moveChecked} 
+              />
+            </Box>
+          </Stack>
+
+          {/* Kanban Spalten mit fixer Höhe */}
+          <Stack direction="row" spacing={2} sx={{ 
+            justifyContent: 'space-between',
+            alignItems: 'stretch',
+            width: '100%',
+            flex: 1,
+            minHeight: 0,
+            overflow: 'hidden'
+          }}>
+            {createTodoColumn(newTodos)}
+            {createTodoColumn(openTodos)}
+            {createTodoColumn(completedTodos)}
+          </Stack>
+        </>
       )}
       
       {/* Edit Todo Popup */}
       <EditTodoPopUp
         open={editTodoOpen}
         onClose={handleCloseEdit}
-        onSubmit={handleEditSubmit}
-        initialData={selectedTodo}
+        todo={selectedTodo}
+        onSubmit={handleUpdateTodo}
       />
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={handleDeleteCancel}
-        aria-labelledby="delete-dialog-title"
-        aria-describedby="delete-dialog-description"
-      >
-        <DialogTitle id="delete-dialog-title">
-          Todo löschen?
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="delete-dialog-description">
-            Möchten Sie das Todo "{todoToDelete?.title}" wirklich löschen? 
-            Diese Aktion kann nicht rückgängig gemacht werden.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel} color="primary">
-            Abbrechen
-          </Button>
-          <Button onClick={handleDeleteConfirm} color="error" variant="contained" autoFocus>
-            Löschen
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }

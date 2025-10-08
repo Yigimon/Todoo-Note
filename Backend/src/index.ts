@@ -1,7 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import session from 'express-session';
-import connectPgSimple from 'connect-pg-simple';
 import { PrismaClient } from '@prisma/client';
 import todoRouter from './routes/todos';
 import authRouter from './routes/auth';
@@ -22,22 +21,18 @@ app.use(cors({
 
 export const prismaDbClient = new PrismaClient();
 
-// Session Configuration
-const pgSession = connectPgSimple(session);
+// Session Configuration (using MemoryStore for development)
 app.use(session({
-  store: new pgSession({
-    conString: process.env.DATABASE_URL,
-    tableName: 'user_sessions',
-    createTableIfMissing: true
-  }),
   secret: process.env.SESSION_SECRET || 'your-super-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
+  name: 'sessionId', // Custom cookie name
   cookie: {
-    maxAge: 8 * 60 * 60 * 1000, // 8 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
     secure: false, // set True when not DEV
-    sameSite: 'lax'
+    sameSite: 'lax',
+    path: '/'
   }
 }));
 
